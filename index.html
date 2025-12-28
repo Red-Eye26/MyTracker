@@ -59,7 +59,7 @@
             Calendar, Target, Settings, LayoutDashboard, 
             Plus, Minus, Trophy, CalendarRange, 
             TrendingUp, Zap, CheckCircle2, 
-            Trash2, LogOut, PlusCircle, Check 
+            Trash2, LogOut, PlusCircle, Check, Lock, ShieldAlert
         } from 'lucide-react';
         
         import { initializeApp } from "firebase/app";
@@ -69,6 +69,13 @@
         import { 
             getFirestore, collection, query, where, addDoc, deleteDoc, doc, updateDoc, increment, onSnapshot 
         } from "firebase/firestore";
+
+        // --- SECURITY CONFIGURATION ---
+        
+        // 🔒 OPTIONAL: To restrict this app so ONLY YOU can use it, enter your email below.
+        // Example: const ALLOWED_EMAIL = "john.doe@gmail.com";
+        // If left empty "", anyone can log in, but they will ONLY see their OWN separate data.
+        const ALLOWED_EMAIL = ""; 
 
         // --- CONSTANTS ---
         const FIREBASE_CONFIG = {
@@ -96,34 +103,31 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Guest Mode Logic
-        const createGuestUser = () => ({
-            uid: "guest-" + Date.now(),
-            displayName: "Guest User",
-            email: "guest@example.com",
-            emailVerified: true,
-            isAnonymous: true,
-            providerData: [],
-            providerId: "guest",
-        });
-
-        const guestListeners = [];
+        // --- AUTH LOGIC ---
+        // We strictly use Google Auth now to ensure data persistence and security.
 
         const signInWithGoogle = async () => {
             const provider = new GoogleAuthProvider();
             try {
                 await signInWithPopup(auth, provider);
             } catch (error) {
-                const isDomainError = error.code === 'auth/unauthorized-domain' || error.message?.includes('unauthorized-domain');
-                const isAdminError = error.code === 'auth/admin-restricted-operation' || error.code === 'auth/operation-not-allowed';
-
-                if (isDomainError || isAdminError) {
-                    console.warn("Environment restricted. Activating Guest Mode.");
-                    const guestUser = createGuestUser();
-                    localStorage.setItem('life_tracker_guest', JSON.stringify(guestUser));
-                    guestListeners.forEach(cb => cb(guestUser));
+                console.error("Firebase Auth failed:", error);
+                
+                // Specific handling for Unauthorized Domain error
+                if (error.code === 'auth/unauthorized-domain') {
+                    const currentDomain = window.location.hostname;
+                    alert(
+                        `⚠️ SETUP REQUIRED: DOMAIN NOT AUTHORIZED ⚠️\n\n` +
+                        `This specific website domain (${currentDomain}) has not been added to your Firebase Console yet.\n\n` +
+                        `TO FIX THIS:\n` +
+                        `1. Go to Firebase Console -> Authentication -> Settings -> Authorized Domains\n` +
+                        `2. Click "Add Domain"\n` +
+                        `3. Paste exactly this: ${currentDomain}\n\n` +
+                        `After adding it, refresh this page and try again.`
+                    );
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    // User closed popup, do nothing
                 } else {
-                    console.error("Firebase Auth failed:", error);
                     alert("Sign in failed: " + error.message);
                 }
             }
@@ -131,8 +135,6 @@
 
         const logout = async () => {
             try {
-                localStorage.removeItem('life_tracker_guest');
-                guestListeners.forEach(cb => cb(null));
                 await signOut(auth);
             } catch (error) {
                 console.error("Error signing out", error);
@@ -140,29 +142,16 @@
         };
 
         const subscribeToAuth = (callback) => {
-            const guestData = localStorage.getItem('life_tracker_guest');
-            if (guestData) {
-                try {
-                    const guestUser = JSON.parse(guestData);
-                    callback(guestUser);
-                } catch (e) {
-                    localStorage.removeItem('life_tracker_guest');
-                }
-            }
-
-            guestListeners.push(callback);
-
-            const unsubscribeFirebase = onAuthStateChanged(auth, (user) => {
-                if (!localStorage.getItem('life_tracker_guest')) {
+            return onAuthStateChanged(auth, (user) => {
+                // Security Check: If an allowed email is set, enforce it.
+                if (user && ALLOWED_EMAIL && user.email !== ALLOWED_EMAIL) {
+                    alert("Access Denied: This workspace is restricted.");
+                    signOut(auth);
+                    callback(null);
+                } else {
                     callback(user);
                 }
             });
-
-            return () => {
-                unsubscribeFirebase();
-                const idx = guestListeners.indexOf(callback);
-                if (idx > -1) guestListeners.splice(idx, 1);
-            };
         };
 
         const getTodayString = () => {
@@ -672,13 +661,26 @@
                     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center p-6">
                         <GlassCard className="w-full max-w-sm p-8 flex flex-col items-center text-center space-y-8 animate-fade-in-up">
                             <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center border border-white/20 shadow-xl shadow-blue-900/20">
-                                <Target size={40} className="text-blue-300" />
+                                <Lock size={40} className="text-blue-300" />
                             </div>
                             <div>
                                 <h1 className="text-4xl font-light text-white mb-2">Life Tracker</h1>
-                                <p className="text-slate-400">Focus on your habits. Crush your goals.</p>
+                                <p className="text-slate-400">Secure Personal Workspace</p>
                             </div>
-                            <button onClick={signInWithGoogle} className={BUTTON_CLASSES}>Enter Your Workspace</button>
+                            <button onClick={signInWithGoogle} className={BUTTON_CLASSES}>
+                                <span className="flex items-center justify-center gap-2">
+                                    Sign in with Google
+                                </span>
+                            </button>
+                            {ALLOWED_EMAIL ? (
+                                <p className="text-xs text-slate-500 flex items-center gap-1">
+                                    <ShieldAlert size={12} /> Restricted to Owner
+                                </p>
+                            ) : (
+                                <p className="text-xs text-slate-500">
+                                    Your data is private and encrypted.
+                                </p>
+                            )}
                         </GlassCard>
                     </div>
                 );
