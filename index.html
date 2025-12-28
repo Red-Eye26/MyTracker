@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Life Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Babel for JSX support -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      body {
+        background-color: #0f172a; /* slate-900 fallback */
+        color: #f1f5f9; /* slate-100 */
+        -webkit-font-smoothing: antialiased;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      /* Hide scrollbar for clean mobile look */
+      ::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+      .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react/": "https://esm.sh/react@18.3.1/",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0",
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Changed type to text/babel and added data-type="module" -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'react';
+        import ReactDOM from 'react-dom/client';
+        import { 
+            Calendar, Target, Settings, LayoutDashboard, 
+            Plus, Minus, Trophy, CalendarRange, 
+            TrendingUp, Zap, CheckCircle2, 
+            Trash2, LogOut, PlusCircle, Check 
+        } from 'lucide-react';
+        
+        import { initializeApp } from "firebase/app";
+        import { 
+            getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+        } from "firebase/auth";
+        import { 
+            getFirestore, collection, query, where, addDoc, deleteDoc, doc, updateDoc, increment, onSnapshot 
+        } from "firebase/firestore";
+
+        // --- CONSTANTS ---
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCFQQHx_XumqSgEWfZQav8Wpx0UxMmFj6s",
+            authDomain: "life-tracker-1d35b.firebaseapp.com",
+            projectId: "life-tracker-1d35b",
+            storageBucket: "life-tracker-1d35b.firebasestorage.app",
+            messagingSenderId: "571383830152",
+            appId: "1:571383830152:web:3c752a76aa3b7a0a7a313d"
+        };
+
+        const GLASS_CLASSES = "bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg";
+        const INPUT_CLASSES = "w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-white/30 transition-colors";
+        const BUTTON_CLASSES = "w-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-medium py-3 rounded-xl transition-all border border-white/5";
+
+        const Tab = {
+            TODAY: 'TODAY',
+            GOALS: 'GOALS',
+            DASHBOARD: 'DASHBOARD',
+            SETTINGS: 'SETTINGS',
+        };
+
+        // --- FIREBASE SERVICES ---
+        const app = initializeApp(FIREBASE_CONFIG);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Guest Mode Logic
+        const createGuestUser = () => ({
+            uid: "guest-" + Date.now(),
+            displayName: "Guest User",
+            email: "guest@example.com",
+            emailVerified: true,
+            isAnonymous: true,
+            providerData: [],
+            providerId: "guest",
+        });
+
+        const guestListeners = [];
+
+        const signInWithGoogle = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                const isDomainError = error.code === 'auth/unauthorized-domain' || error.message?.includes('unauthorized-domain');
+                const isAdminError = error.code === 'auth/admin-restricted-operation' || error.code === 'auth/operation-not-allowed';
+
+                if (isDomainError || isAdminError) {
+                    console.warn("Environment restricted. Activating Guest Mode.");
+                    const guestUser = createGuestUser();
+                    localStorage.setItem('life_tracker_guest', JSON.stringify(guestUser));
+                    guestListeners.forEach(cb => cb(guestUser));
+                } else {
+                    console.error("Firebase Auth failed:", error);
+                    alert("Sign in failed: " + error.message);
+                }
+            }
+        };
+
+        const logout = async () => {
+            try {
+                localStorage.removeItem('life_tracker_guest');
+                guestListeners.forEach(cb => cb(null));
+                await signOut(auth);
+            } catch (error) {
+                console.error("Error signing out", error);
+            }
+        };
+
+        const subscribeToAuth = (callback) => {
+            const guestData = localStorage.getItem('life_tracker_guest');
+            if (guestData) {
+                try {
+                    const guestUser = JSON.parse(guestData);
+                    callback(guestUser);
+                } catch (e) {
+                    localStorage.removeItem('life_tracker_guest');
+                }
+            }
+
+            guestListeners.push(callback);
+
+            const unsubscribeFirebase = onAuthStateChanged(auth, (user) => {
+                if (!localStorage.getItem('life_tracker_guest')) {
+                    callback(user);
+                }
+            });
+
+            return () => {
+                unsubscribeFirebase();
+                const idx = guestListeners.indexOf(callback);
+                if (idx > -1) guestListeners.splice(idx, 1);
+            };
+        };
+
+        const getTodayString = () => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        // --- COMPONENTS ---
+        
+        const GlassCard = ({ children, className = "", onClick }) => {
+            return (
+                <div className={`${GLASS_CLASSES} ${className}`} onClick={onClick}>
+                    {children}
+                </div>
+            );
+        };
+
+        const BottomNav = ({ activeTab, onTabChange }) => {
+            const navItems = [
+                { id: Tab.TODAY, icon: Calendar, label: "Today" },
+                { id: Tab.DASHBOARD, icon: LayoutDashboard, label: "Insights" },
+                { id: Tab.GOALS, icon: Target, label: "Goals" },
+                { id: Tab.SETTINGS, icon: Settings, label: "Settings" },
+            ];
+
+            return (
+                <div className="fixed bottom-0 left-0 right-0 p-4 z-50">
+                    <nav className={`${GLASS_CLASSES} flex justify-around items-center p-2 bg-black/60 backdrop-blur-2xl`}>
+                        {navItems.map((item) => {
+                            const isActive = activeTab === item.id;
+                            const Icon = item.icon;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onTabChange(item.id)}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl w-full transition-all duration-300 ${
+                                        isActive ? 'text-white bg-white/10' : 'text-slate-500 hover:text-slate-300'
+                                    }`}
+                                >
+                                    <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                                    <span className={`text-[10px] mt-1 font-medium ${isActive ? 'opacity-100' : 'opacity-0 hidden'}`}>
+                                        {item.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </div>
+            );
+        };
+
+        // --- VIEWS ---
+
+        const TodayView = ({ user }) => {
+            const [habits, setHabits] = useState([]);
+            const [logs, setLogs] = useState([]);
+            const todayStr = getTodayString();
+
+            useEffect(() => {
+                const q = query(collection(db, "habits"), where("uid", "==", user.uid));
+                const unsubscribe = onSnapshot(q, (snapshot) => {
+                    const fetchedHabits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setHabits(fetchedHabits.sort((a, b) => a.name.localeCompare(b.name)));
+                });
+                return () => unsubscribe();
+            }, [user.uid]);
+
+            useEffect(() => {
+                const q = query(
+                    collection(db, "logs"), 
+                    where("uid", "==", user.uid),
+                    where("dateString", "==", todayStr)
+                );
+                const unsubscribe = onSnapshot(q, (snapshot) => {
+                    const fetchedLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setLogs(fetchedLogs);
+                });
+                return () => unsubscribe();
+            }, [user.uid, todayStr]);
+
+            const toggleHabit = async (habit) => {
+                const existingLog = logs.find(log => log.habitId === habit.id);
+                if (existingLog) {
+                    await deleteDoc(doc(db, "logs", existingLog.id));
+                } else {
+                    await addDoc(collection(db, "logs"), {
+                        uid: user.uid,
+                        habitId: habit.id,
+                        dateString: todayStr,
+                    });
+                }
+            };
+
+            const completedCount = logs.length;
+            const totalCount = habits.length;
+            const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+            const radius = 50;
+            const circumference = 2 * Math.PI * radius;
+            const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+            return (
+                <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
+                    <div className="flex items-center justify-between px-2">
+                        <div>
+                            <h1 className="text-3xl font-light text-white tracking-tight">Good Morning,</h1>
+                            <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">
+                                {user.displayName?.split(' ')[0] || 'User'}
+                            </p>
+                            <p className="text-sm text-slate-400 mt-1">{new Date().toDateString()}</p>
+                        </div>
+                        <div className="relative w-24 h-24 flex items-center justify-center">
+                            <svg className="transform -rotate-90 w-24 h-24">
+                                <circle className="text-white/5" strokeWidth="8" stroke="currentColor" fill="transparent" r={radius} cx="48" cy="48" />
+                                <circle 
+                                    className="text-emerald-400 transition-all duration-1000 ease-out" 
+                                    strokeWidth="8" 
+                                    strokeDasharray={circumference} 
+                                    strokeDashoffset={strokeDashoffset} 
+                                    strokeLinecap="round" 
+                                    stroke="currentColor" 
+                                    fill="transparent" 
+                                    r={radius} cx="48" cy="48" 
+                                />
+                            </svg>
+                            <span className="absolute text-xl font-bold text-white">{percentage}%</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {habits.length === 0 ? (
+                            <div className="text-center p-8 text-slate-500 bg-white/5 rounded-2xl border border-white/5 border-dashed">
+                                No habits yet. Go to Settings to create one!
+                            </div>
+                        ) : (
+                            habits.map(habit => {
+                                const isCompleted = logs.some(log => log.habitId === habit.id);
+                                return (
+                                    <GlassCard 
+                                        key={habit.id} 
+                                        className={`p-4 flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer group ${isCompleted ? 'bg-emerald-500/10 border-emerald-500/20' : ''}`}
+                                        onClick={() => toggleHabit(habit)}
+                                    >
+                                        <span className={`text-lg font-medium transition-colors ${isCompleted ? 'text-emerald-200 line-through decoration-emerald-500/50' : 'text-slate-200'}`}>
+                                            {habit.name}
+                                        </span>
+                                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500' : 'border-white/20 group-hover:border-white/40'}`}>
+                                            {isCompleted && <Check size={18} className="text-black" strokeWidth={3} />}
+                                        </div>
+                                    </GlassCard>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const DashboardView = ({ user }) => {
+            const [habits, setHabits] = useState([]);
+            const [logs, setLogs] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const unsubHabits = onSnapshot(
+                    query(collection(db, "habits"), where("uid", "==", user.uid)),
+                    (snap) => setHabits(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+                );
+                const unsubLogs = onSnapshot(
+                    query(collection(db, "logs"), where("uid", "==", user.uid)),
+                    (snap) => {
+                        setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                        setLoading(false);
+                    }
+                );
+                return () => { unsubHabits(); unsubLogs(); };
+            }, [user.uid]);
+
+            const getLast7Days = () => Array.from({ length: 7 }, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return d.toISOString().split('T')[0];
+            });
+            const last7Days = getLast7Days();
+
+            const habitStats = habits.map(habit => {
+                const habitLogs = logs.filter(l => l.habitId === habit.id);
+                const recentLogs = habitLogs.filter(l => last7Days.includes(l.dateString)).length;
+                const weeklyScore = Math.round((recentLogs / 7) * 100);
+                return { ...habit, weeklyScore };
+            });
+
+            const lowestPerforming = [...habitStats].sort((a, b) => a.weeklyScore - b.weeklyScore)[0];
+            const highestPerforming = [...habitStats].sort((a, b) => b.weeklyScore - a.weeklyScore)[0];
+            const getDayLabel = (dateStr) => ['S', 'M', 'T', 'W', 'T', 'F', 'S'][new Date(dateStr).getDay()];
+
+            if (loading) return <div className="p-4 text-center text-slate-500">Loading insights...</div>;
+
+            return (
+                <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
+                    <div className="px-2">
+                        <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-2">
+                            Dashboard <TrendingUp className="text-emerald-400" size={28} />
+                        </h1>
+                        <p className="text-sm text-slate-400 mt-1">Analytics & Improvements</p>
+                    </div>
+
+                    {lowestPerforming && (
+                        <GlassCard className="p-5 border-l-4 border-l-amber-500 bg-gradient-to-r from-amber-500/10 to-transparent">
+                            <div className="flex items-start gap-3">
+                                <Zap className="text-amber-400 shrink-0 mt-1" size={20} />
+                                <div>
+                                    <h3 className="text-white font-bold text-sm uppercase tracking-wider">Focus Area</h3>
+                                    <p className="text-slate-300 text-sm mt-1 leading-relaxed">
+                                        Your habit <span className="text-white font-semibold">"{lowestPerforming.name}"</span> is at 
+                                        <span className="text-amber-400 font-bold"> {lowestPerforming.weeklyScore}%</span> consistency this week. 
+                                        Try pairing it with your strongest habit: <span className="text-emerald-300">{highestPerforming?.name}</span>.
+                                    </p>
+                                </div>
+                            </div>
+                        </GlassCard>
+                    )}
+
+                    <section>
+                        <h2 className="text-lg font-semibold text-slate-300 mb-3 px-2">Last 7 Days Matrix</h2>
+                        <GlassCard className="p-4 overflow-x-auto">
+                            <table className="w-full min-w-[300px]">
+                                <thead>
+                                    <tr>
+                                        <th className="text-left text-xs text-slate-500 font-medium pb-3 pl-2">Habit</th>
+                                        {last7Days.map(date => (
+                                            <th key={date} className="text-center text-xs text-slate-400 pb-3 w-8">{getDayLabel(date)}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {habits.map(habit => (
+                                        <tr key={habit.id} className="border-t border-white/5">
+                                            <td className="py-3 pl-2 text-sm text-slate-200 font-medium truncate max-w-[120px]">{habit.name}</td>
+                                            {last7Days.map(date => {
+                                                const isDone = logs.some(l => l.habitId === habit.id && l.dateString === date);
+                                                return (
+                                                    <td key={date} className="text-center py-2">
+                                                        <div className={`w-6 h-6 rounded-md mx-auto flex items-center justify-center transition-all ${isDone ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-white/5'}`}>
+                                                            {isDone && <CheckCircle2 size={14} className="text-black" />}
+                                                        </div>
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </GlassCard>
+                    </section>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <GlassCard className="p-4 flex flex-col items-center justify-center">
+                            <span className="text-3xl font-bold text-white">{logs.length}</span>
+                            <span className="text-xs text-slate-400 uppercase tracking-widest mt-1">Total Reps</span>
+                        </GlassCard>
+                        <GlassCard className="p-4 flex flex-col items-center justify-center">
+                            <span className="text-3xl font-bold text-blue-400">{habits.length}</span>
+                            <span className="text-xs text-slate-400 uppercase tracking-widest mt-1">Active Habits</span>
+                        </GlassCard>
+                    </div>
+
+                    <section>
+                        <h2 className="text-lg font-semibold text-slate-300 mb-3 px-2">Habit Health</h2>
+                        <div className="space-y-3">
+                            {habitStats.map(h => (
+                                <div key={h.id} className="flex flex-col">
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="text-slate-300">{h.name}</span>
+                                        <span className={`${h.weeklyScore >= 80 ? 'text-emerald-400' : h.weeklyScore < 50 ? 'text-red-400' : 'text-amber-400'}`}>
+                                            {h.weeklyScore}%
+                                        </span>
+                                    </div>
+                                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-1000 ${h.weeklyScore >= 80 ? 'bg-emerald-500' : h.weeklyScore < 50 ? 'bg-red-500' : 'bg-amber-500'}`} 
+                                            style={{ width: `${h.weeklyScore}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                </div>
+            );
+        };
+
+        const GoalsView = ({ user }) => {
+            const [goals, setGoals] = useState([]);
+            const [viewMode, setViewMode] = useState('MONTHLY');
+            const currentMonthStr = new Date().toISOString().slice(0, 7);
+
+            useEffect(() => {
+                const q = query(collection(db, "goals"), where("uid", "==", user.uid));
+                const unsubscribe = onSnapshot(q, (snapshot) => {
+                    const fetchedGoals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setGoals(fetchedGoals);
+                });
+                return () => unsubscribe();
+            }, [user.uid]);
+
+            const filteredGoals = goals.filter(g => {
+                if (viewMode === 'YEARLY') return g.type === 'YEARLY';
+                if (viewMode === 'MONTHLY') return g.type === 'MONTHLY' && g.period === currentMonthStr;
+                return false;
+            });
+
+            const adjustGoal = async (goalId, amount) => {
+                const goalRef = doc(db, "goals", goalId);
+                await updateDoc(goalRef, { current: increment(amount) });
+            };
+
+            return (
+                <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
+                    <div className="px-2">
+                        <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-2">
+                            {viewMode === 'MONTHLY' ? 'Monthly Focus' : 'Yearly Vision'}
+                        </h1>
+                        <p className="text-sm text-slate-400 mt-1">
+                            {viewMode === 'MONTHLY' ? new Date().toLocaleString('default', { month: 'long', year: 'numeric' }) : `Goals for ${new Date().getFullYear()}`}
+                        </p>
+                    </div>
+
+                    <div className="bg-black/20 p-1 rounded-xl flex border border-white/5">
+                        <button onClick={() => setViewMode('MONTHLY')} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'MONTHLY' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-500'}`}>Monthly</button>
+                        <button onClick={() => setViewMode('YEARLY')} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'YEARLY' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-500'}`}>Yearly</button>
+                    </div>
+
+                    <div className="space-y-4">
+                        {filteredGoals.length === 0 ? (
+                            <div className="text-center p-8 text-slate-500 bg-white/5 rounded-2xl border border-white/5 border-dashed">
+                                <p className="mb-2">No {viewMode.toLowerCase()} goals found.</p>
+                                <p className="text-xs">Go to Settings to add new goals for this period.</p>
+                            </div>
+                        ) : (
+                            filteredGoals.map(goal => {
+                                const progress = Math.min(100, Math.max(0, (goal.current / goal.target) * 100));
+                                const isMonthly = goal.type === 'MONTHLY';
+                                return (
+                                    <GlassCard key={goal.id} className="p-5 flex flex-col space-y-4 relative overflow-hidden">
+                                        <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-20 ${isMonthly ? 'bg-blue-500' : 'bg-purple-500'}`} />
+                                        <div className="flex justify-between items-end relative z-10">
+                                            <div>
+                                                <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                                                    {goal.name}
+                                                    {isMonthly && <CalendarRange size={16} className="text-blue-400" />}
+                                                    {!isMonthly && <Trophy size={16} className="text-amber-400" />}
+                                                </h3>
+                                                <p className="text-sm text-slate-400 mt-1">
+                                                    <span className="text-white font-mono font-bold text-lg">{goal.current}</span>
+                                                    <span className="mx-1">/</span>
+                                                    <span>{goal.target}</span>
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-2xl font-bold text-white/90">{Math.round(progress)}%</span>
+                                            </div>
+                                        </div>
+                                        <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 relative z-10">
+                                            <div className={`h-full transition-all duration-500 ease-out rounded-full ${isMonthly ? 'bg-gradient-to-r from-cyan-500 to-blue-500' : 'bg-gradient-to-r from-amber-500 to-purple-600'}`} style={{ width: `${progress}%` }} />
+                                        </div>
+                                        <div className="flex space-x-3 pt-2 relative z-10">
+                                            <button onClick={() => adjustGoal(goal.id, -1)} className="flex-1 bg-white/5 hover:bg-white/10 active:bg-white/20 p-2 rounded-xl flex items-center justify-center border border-white/10 transition-colors">
+                                                <Minus size={20} className="text-slate-300" />
+                                            </button>
+                                            <button onClick={() => adjustGoal(goal.id, 1)} className="flex-1 bg-white/10 hover:bg-white/20 active:bg-white/30 p-2 rounded-xl flex items-center justify-center border border-white/10 transition-colors">
+                                                <Plus size={20} className="text-white" />
+                                            </button>
+                                        </div>
+                                    </GlassCard>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const SettingsView = ({ user }) => {
+            const [habitName, setHabitName] = useState("");
+            const [goalName, setGoalName] = useState("");
+            const [goalTarget, setGoalTarget] = useState("");
+            const [goalType, setGoalType] = useState('MONTHLY');
+            const [habits, setHabits] = useState([]);
+            const [goals, setGoals] = useState([]);
+
+            useEffect(() => {
+                const unsubHabits = onSnapshot(query(collection(db, "habits"), where("uid", "==", user.uid)), (snap) => setHabits(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+                const unsubGoals = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid)), (snap) => setGoals(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+                return () => { unsubHabits(); unsubGoals(); };
+            }, [user.uid]);
+
+            const handleCreateHabit = async (e) => {
+                e.preventDefault();
+                if (!habitName.trim()) return;
+                await addDoc(collection(db, "habits"), { uid: user.uid, name: habitName, createdAt: Date.now() });
+                setHabitName("");
+            };
+
+            const handleCreateGoal = async (e) => {
+                e.preventDefault();
+                if (!goalName.trim() || !goalTarget) return;
+                const data = { uid: user.uid, name: goalName, target: Number(goalTarget), current: 0, createdAt: Date.now(), type: goalType };
+                if (goalType === 'MONTHLY') data.period = new Date().toISOString().slice(0, 7);
+                await addDoc(collection(db, "goals"), data);
+                setGoalName(""); setGoalTarget("");
+                alert(`${goalType === 'MONTHLY' ? 'Monthly' : 'Yearly'} goal added!`);
+            };
+
+            const handleDelete = async (collectionName, id) => {
+                if (confirm("Are you sure?")) await deleteDoc(doc(db, collectionName, id));
+            };
+
+            return (
+                <div className="flex flex-col space-y-8 pb-24 animate-fade-in">
+                    <div className="flex justify-between items-center px-2">
+                        <h1 className="text-3xl font-light text-white tracking-tight">Settings</h1>
+                        <button onClick={logout} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-full border border-red-500/20 transition-colors">
+                            <LogOut size={20} />
+                        </button>
+                    </div>
+
+                    <section>
+                        <h2 className="text-lg font-semibold text-slate-300 mb-3 px-2">Create New Habit</h2>
+                        <GlassCard className="p-5">
+                            <form onSubmit={handleCreateHabit} className="space-y-4">
+                                <input type="text" value={habitName} onChange={(e) => setHabitName(e.target.value)} placeholder="e.g., Morning Jog" className={INPUT_CLASSES} />
+                                <button type="submit" className={BUTTON_CLASSES}><div className="flex items-center justify-center gap-2"><PlusCircle size={20} /> Add Habit</div></button>
+                            </form>
+                        </GlassCard>
+                        <div className="mt-4 space-y-2">
+                            {habits.map(h => (
+                                <div key={h.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                                    <span className="text-slate-300">{h.name}</span>
+                                    <button onClick={() => handleDelete("habits", h.id)} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={18} /></button>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2 className="text-lg font-semibold text-slate-300 mb-3 px-2">Create Goal</h2>
+                        <GlassCard className="p-5">
+                            <form onSubmit={handleCreateGoal} className="space-y-4">
+                                <div className="flex bg-black/30 p-1 rounded-lg">
+                                    <button type="button" onClick={() => setGoalType('MONTHLY')} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'MONTHLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Monthly Goal</button>
+                                    <button type="button" onClick={() => setGoalType('YEARLY')} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'YEARLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Yearly Goal</button>
+                                </div>
+                                <input type="text" value={goalName} onChange={(e) => setGoalName(e.target.value)} placeholder={goalType === 'MONTHLY' ? "e.g., Read 2 Books" : "e.g., Save $5000"} className={INPUT_CLASSES} />
+                                <input type="number" value={goalTarget} onChange={(e) => setGoalTarget(e.target.value)} placeholder="Target Number" className={INPUT_CLASSES} />
+                                <button type="submit" className={BUTTON_CLASSES}><div className="flex items-center justify-center gap-2"><PlusCircle size={20} /> Add {goalType === 'MONTHLY' ? 'Monthly' : 'Yearly'} Goal</div></button>
+                            </form>
+                        </GlassCard>
+                        <div className="mt-4 space-y-2">
+                            {goals.map(g => (
+                                <div key={g.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-slate-300">{g.name}</span>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${g.type === 'MONTHLY' ? 'bg-blue-500/20 text-blue-300' : 'bg-purple-500/20 text-purple-300'}`}>{g.type}</span>
+                                        </div>
+                                        <span className="text-xs text-slate-500">Target: {g.target}</span>
+                                    </div>
+                                    <button onClick={() => handleDelete("goals", g.id)} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={18} /></button>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                </div>
+            );
+        };
+
+        // --- APP ENTRY ---
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [activeTab, setActiveTab] = useState(Tab.TODAY);
+
+            useEffect(() => {
+                const unsubscribe = subscribeToAuth((currentUser) => {
+                    setUser(currentUser);
+                    setLoading(false);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+                        <div className="animate-pulse flex flex-col items-center">
+                            <div className="h-12 w-12 border-4 border-slate-700 border-t-white rounded-full animate-spin"></div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!user) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center p-6">
+                        <GlassCard className="w-full max-w-sm p-8 flex flex-col items-center text-center space-y-8 animate-fade-in-up">
+                            <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center border border-white/20 shadow-xl shadow-blue-900/20">
+                                <Target size={40} className="text-blue-300" />
+                            </div>
+                            <div>
+                                <h1 className="text-4xl font-light text-white mb-2">Life Tracker</h1>
+                                <p className="text-slate-400">Focus on your habits. Crush your goals.</p>
+                            </div>
+                            <button onClick={signInWithGoogle} className={BUTTON_CLASSES}>Enter Your Workspace</button>
+                        </GlassCard>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-slate-100 font-sans selection:bg-blue-500/30">
+                    <main className="max-w-md mx-auto min-h-screen p-4">
+                        {activeTab === Tab.TODAY && <TodayView user={user} />}
+                        {activeTab === Tab.DASHBOARD && <DashboardView user={user} />}
+                        {activeTab === Tab.GOALS && <GoalsView user={user} />}
+                        {activeTab === Tab.SETTINGS && <SettingsView user={user} />}
+                    </main>
+                    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
