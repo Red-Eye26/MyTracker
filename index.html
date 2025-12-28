@@ -38,6 +38,13 @@
       .animate-slide-in-right {
         animation: slideInRight 0.3s ease-out;
       }
+      .cursor-blink {
+        animation: blink 1s step-end infinite;
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -76,7 +83,7 @@
 
     <!-- Changed type to text/babel and added data-type="module" -->
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useMemo } from 'react';
+        import React, { useState, useEffect, useMemo, useRef } from 'react';
         import ReactDOM from 'react-dom/client';
         import { 
             Calendar, Target, Settings, LayoutDashboard, 
@@ -84,7 +91,7 @@
             TrendingUp, Zap, CheckCircle2, 
             Trash2, LogOut, PlusCircle, Check, Lock, ShieldAlert,
             Lightbulb, ArrowLeft, CheckSquare, CalendarDays, Rocket, BarChart3, X,
-            Clock, CalendarClock
+            Clock, CalendarClock, Medal
         } from 'lucide-react';
         
         import { initializeApp } from "firebase/app";
@@ -107,6 +114,49 @@
             messagingSenderId: "571383830152",
             appId: "1:571383830152:web:3c752a76aa3b7a0a7a313d"
         };
+
+        const QUOTES = [
+            "We don’t need effort, we need results.",
+            "Stop explaining—just accept you failed.",
+            "Anyone else could’ve done this better.",
+            "You’re replaceable, don’t forget that.",
+            "Trying isn’t impressive.",
+            "You always need more time than others.",
+            "This isn’t hard—why are you struggling?",
+            "We lowered expectations for you already.",
+            "You’re not bad, just… not good.",
+            "You make things more complicated than they need to be.",
+            "You had one job.",
+            "Excuses won’t change the outcome.",
+            "If you were capable, we wouldn’t be having this conversation.",
+            "You’re too slow for real pressure.",
+            "Potential doesn’t matter if you never deliver.",
+            "We can’t keep carrying you.",
+            "Others don’t need this much guidance.",
+            "You’re falling behind—and it shows.",
+            "No one asked you to struggle this much.",
+            "At some point, effort stops being an excuse.",
+            "You always miss something important.",
+            "You’re not failing dramatically—just consistently.",
+            "We expected growth, not repetition.",
+            "You’re exhausting to manage.",
+            "You don’t learn fast enough.",
+            "This shouldn’t need to be explained again.",
+            "You’re not improving at the pace we need.",
+            "We can’t wait forever for you to catch up.",
+            "Being busy doesn’t mean being useful.",
+            "You cost more time than you save.",
+            "You’re not meeting the standard—again.",
+            "We thought you’d figure this out by now.",
+            "Your best isn’t enough here.",
+            "You slow the whole process down.",
+            "You’re always one step behind everyone else.",
+            "We need reliability, not apologies.",
+            "You overestimate your contribution.",
+            "This role might be too much for you.",
+            "We don’t see leadership in you.",
+            "If this is your limit, say it."
+        ];
 
         const GLASS_CLASSES = "bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg";
         const INPUT_CLASSES = "w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-white/30 transition-colors font-poppins";
@@ -215,6 +265,58 @@
             );
         };
 
+        const Typewriter = () => {
+            const [index, setIndex] = useState(0);
+            const [subIndex, setSubIndex] = useState(0);
+            const [reverse, setReverse] = useState(false);
+            const [phase, setPhase] = useState('TYPING'); // TYPING | PAUSING | DELETING
+
+            // Shuffle quotes on mount or pick random start
+            const randomStart = useMemo(() => Math.floor(Math.random() * QUOTES.length), []);
+            const currentIndex = (randomStart + index) % QUOTES.length;
+            const currentQuote = QUOTES[currentIndex];
+
+            useEffect(() => {
+                let timeout;
+
+                if (phase === 'TYPING') {
+                    if (subIndex < currentQuote.length) {
+                        timeout = setTimeout(() => {
+                            setSubIndex(prev => prev + 1);
+                        }, 40); // Typing speed ~40ms
+                    } else {
+                        // Finished typing
+                        setPhase('PAUSING');
+                    }
+                } else if (phase === 'PAUSING') {
+                    timeout = setTimeout(() => {
+                        setPhase('DELETING');
+                    }, 5000); // 5 seconds rest
+                } else if (phase === 'DELETING') {
+                    if (subIndex > 0) {
+                        timeout = setTimeout(() => {
+                            setSubIndex(prev => prev - 1);
+                        }, 25); // Backspacing speed ~25ms
+                    } else {
+                        // Finished deleting
+                        setPhase('TYPING');
+                        setIndex(prev => prev + 1);
+                    }
+                }
+
+                return () => clearTimeout(timeout);
+            }, [subIndex, phase, currentQuote]);
+
+            return (
+                <div className="min-h-[3rem] flex items-center mb-1">
+                    <h1 className="text-xl md:text-2xl font-light text-slate-100 tracking-tight leading-snug">
+                        {currentQuote.substring(0, subIndex)}
+                        <span className="cursor-blink ml-0.5 text-blue-400 font-normal">|</span>
+                    </h1>
+                </div>
+            );
+        };
+
         // --- VIEWS ---
 
         const TodayView = ({ user }) => {
@@ -223,6 +325,7 @@
             const [activeGoals, setActiveGoals] = useState([]);
             const [pendingNotes, setPendingNotes] = useState([]);
             const [showQuickNotes, setShowQuickNotes] = useState(false);
+            const [goalFilter, setGoalFilter] = useState('ALL'); // ALL | MONTHLY | YEARLY
             
             const todayStr = getTodayString();
             const currentMonth = getCurrentMonthStr();
@@ -237,18 +340,19 @@
                 const unsubGoals = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid)), 
                     (snap) => {
                         const allGoals = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        // Filter active goals (not completed) that are relevant to current time
                         const releventGoals = allGoals.filter(g => 
-                            (g.type === 'MONTHLY' && g.period === currentMonth) || 
-                            (g.type === 'YEARLY' && g.period === getCurrentYearStr())
+                            g.status !== 'COMPLETED' && (
+                                (g.type === 'MONTHLY' && g.period === currentMonth) || 
+                                (g.type === 'YEARLY' && g.period === getCurrentYearStr())
+                            )
                         );
                         setActiveGoals(releventGoals);
                     });
                 
-                // Fetch recent pending notes (Limit 3 for quick glance)
                 const unsubNotes = onSnapshot(query(collection(db, "notes"), where("uid", "==", user.uid), where("status", "==", "PENDING")), 
                     (snap) => {
                         let allNotes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        // Client side sort since composite index might be missing
                         allNotes.sort((a, b) => b.createdAt - a.createdAt);
                         setPendingNotes(allNotes.slice(0, 3));
                     });
@@ -269,8 +373,23 @@
                 }
             };
             
-            const adjustGoal = async (goalId, amount) => {
-                await updateDoc(doc(db, "goals", goalId), { current: increment(amount) });
+            const adjustGoal = async (goal, amount) => {
+                const newCurrent = (goal.current || 0) + amount;
+                
+                if (goal.target && newCurrent >= goal.target && amount > 0) {
+                    // Goal Completed!
+                    if (confirm(`🎉 Amazing! You've reached your target for "${goal.name}". Mark as Completed?`)) {
+                        await updateDoc(doc(db, "goals", goal.id), { 
+                            current: newCurrent,
+                            status: 'COMPLETED',
+                            completedAt: Date.now()
+                        });
+                    } else {
+                         await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
+                    }
+                } else {
+                     await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
+                }
             };
 
             const completedCount = logs.length;
@@ -279,22 +398,27 @@
             const circumference = 2 * Math.PI * radius;
             const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
+            const displayGoals = activeGoals.filter(g => {
+                if (goalFilter === 'ALL') return true;
+                return g.type === goalFilter;
+            });
+
             return (
                 <div className="flex flex-col space-y-6 pb-24 animate-fade-in relative">
-                    <div className="flex items-center justify-between px-2">
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-3xl font-light text-white tracking-tight">Good Morning,</h1>
+                    <div className="flex items-center justify-between px-2 pt-2">
+                        <div className="flex-1 pr-4">
+                            <div className="flex items-center gap-2 mb-2">
                                 <button onClick={() => setShowQuickNotes(true)} className="p-2 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-amber-400 border border-amber-500/20 transition-colors">
                                     <Lightbulb size={20} />
                                 </button>
+                                <p className="text-sm text-slate-400">{formatDateDisplay(new Date())}</p>
                             </div>
-                            <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">
-                                {user.displayName?.split(' ')[0] || 'User'}
-                            </p>
-                            <p className="text-sm text-slate-400 mt-1">{formatDateDisplay(new Date())}</p>
+                            
+                            {/* Typewriter Component Replacement */}
+                            <Typewriter />
+                            
                         </div>
-                        <div className="relative w-20 h-20 flex items-center justify-center">
+                        <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
                             <svg className="transform -rotate-90 w-20 h-20">
                                 <circle className="text-white/5" strokeWidth="6" stroke="currentColor" fill="transparent" r={radius} cx="40" cy="40" />
                                 <circle className="text-emerald-400 transition-all duration-1000 ease-out" strokeWidth="6" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="40" cy="40" />
@@ -347,33 +471,45 @@
 
                     {activeGoals.length > 0 && (
                         <div className="space-y-3 pt-2">
-                             <h2 className="px-2 text-sm font-semibold text-slate-400 uppercase tracking-wider">Current Focus</h2>
+                             <div className="flex justify-between items-center px-2">
+                                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Current Focus</h2>
+                                <div className="flex bg-white/5 rounded-lg p-0.5">
+                                    <button onClick={() => setGoalFilter('ALL')} className={`px-2 py-0.5 text-[10px] rounded ${goalFilter === 'ALL' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>All</button>
+                                    <button onClick={() => setGoalFilter('MONTHLY')} className={`px-2 py-0.5 text-[10px] rounded ${goalFilter === 'MONTHLY' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>Mo.</button>
+                                    <button onClick={() => setGoalFilter('YEARLY')} className={`px-2 py-0.5 text-[10px] rounded ${goalFilter === 'YEARLY' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>Yr.</button>
+                                </div>
+                             </div>
+                             
                              <div className="grid gap-3">
-                                {activeGoals.map(goal => {
-                                    const hasTarget = goal.target && goal.target > 0;
-                                    const progress = hasTarget ? Math.min(100, (goal.current / goal.target) * 100) : 0;
-                                    return (
-                                        <GlassCard key={goal.id} className="p-4 flex flex-col space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <div className="flex items-center gap-2">
-                                                    {goal.type === 'MONTHLY' ? <CalendarRange size={14} className="text-blue-400" /> : <Trophy size={14} className="text-amber-400" />}
-                                                    <span className="text-sm font-medium text-slate-200">{goal.name}</span>
+                                {displayGoals.length === 0 ? (
+                                    <div className="text-center text-xs text-slate-500 py-4">No {goalFilter !== 'ALL' ? goalFilter.toLowerCase() : ''} goals for this period.</div>
+                                ) : (
+                                    displayGoals.map(goal => {
+                                        const hasTarget = goal.target && goal.target > 0;
+                                        const progress = hasTarget ? Math.min(100, (goal.current / goal.target) * 100) : 0;
+                                        return (
+                                            <GlassCard key={goal.id} className="p-4 flex flex-col space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center gap-2">
+                                                        {goal.type === 'MONTHLY' ? <CalendarRange size={14} className="text-blue-400" /> : <Trophy size={14} className="text-amber-400" />}
+                                                        <span className="text-sm font-medium text-slate-200">{goal.name}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-sm font-bold text-white">{goal.current} {hasTarget && <span className="text-slate-500 text-xs font-normal">/ {goal.target}</span>}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-sm font-bold text-white">{goal.current} {hasTarget && <span className="text-slate-500 text-xs font-normal">/ {goal.target}</span>}</span>
+                                                {hasTarget && (
+                                                    <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500" style={{ width: `${progress}%` }} />
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-end gap-2 pt-1">
+                                                    <button onClick={() => adjustGoal(goal, 1)} className="p-1.5 bg-white/10 rounded-lg hover:bg-white/20 text-white"><Plus size={16} /></button>
                                                 </div>
-                                            </div>
-                                            {hasTarget && (
-                                                <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500" style={{ width: `${progress}%` }} />
-                                                </div>
-                                            )}
-                                            <div className="flex justify-end gap-2 pt-1">
-                                                <button onClick={() => adjustGoal(goal.id, 1)} className="p-1.5 bg-white/10 rounded-lg hover:bg-white/20 text-white"><Plus size={16} /></button>
-                                            </div>
-                                        </GlassCard>
-                                    );
-                                })}
+                                            </GlassCard>
+                                        );
+                                    })
+                                )}
                              </div>
                         </div>
                     )}
@@ -384,6 +520,7 @@
         const AnalyticsOverlay = ({ user, onClose }) => {
             const [logs, setLogs] = useState([]);
             const [habits, setHabits] = useState([]);
+            const [completedGoals, setCompletedGoals] = useState([]);
             const [startDate, setStartDate] = useState(() => {
                 const d = new Date();
                 d.setDate(d.getDate() - 29);
@@ -395,7 +532,10 @@
                 const unsubHabits = onSnapshot(query(collection(db, "habits"), where("uid", "==", user.uid)), (snap) => setHabits(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
                 const unsubLogs = onSnapshot(query(collection(db, "logs"), where("uid", "==", user.uid)), 
                     (snap) => setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-                return () => { unsubHabits(); unsubLogs(); };
+                const unsubGoals = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid), where("status", "==", "COMPLETED")),
+                    (snap) => setCompletedGoals(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => b.completedAt - a.completedAt)));
+
+                return () => { unsubHabits(); unsubLogs(); unsubGoals(); };
             }, [user.uid]);
 
             const filteredLogs = useMemo(() => {
@@ -477,6 +617,34 @@
                                  <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={INPUT_CLASSES + " py-2 text-xs"} />
                              </div>
                         </GlassCard>
+
+                        {/* Achievements Trophy Room */}
+                        <section>
+                            <div className="flex items-center gap-2 mb-3 px-2">
+                                <Medal size={16} className="text-amber-400" />
+                                <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Achievements</h2>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {completedGoals.length === 0 ? (
+                                    <div className="col-span-2 text-center text-slate-500 text-xs py-4 bg-white/5 rounded-xl border border-white/5 border-dashed">
+                                        No completed goals yet. Keep pushing!
+                                    </div>
+                                ) : (
+                                    completedGoals.map(goal => (
+                                        <GlassCard key={goal.id} className="p-3 border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent flex flex-col justify-between">
+                                            <div className="flex justify-between items-start mb-2">
+                                                 <Trophy size={16} className="text-amber-400" />
+                                                 <span className="text-[10px] text-amber-200/70">{formatPeriodDisplay(goal.type, goal.period)}</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-white font-medium text-sm leading-tight mb-1">{goal.name}</h4>
+                                                <div className="text-xs text-amber-100/60">Hit Target: <span className="text-amber-400 font-bold">{goal.target}</span></div>
+                                            </div>
+                                        </GlassCard>
+                                    ))
+                                )}
+                            </div>
+                        </section>
 
                         <div className="grid grid-cols-2 gap-4">
                             <GlassCard className="p-4 flex flex-col items-center justify-center">
@@ -578,16 +746,30 @@
                 return () => unsub();
             }, [user.uid]);
 
-            // Filter by type but NOT by date, so we see the full timeline
+            // Filter by type, remove COMPLETED, sort by period
             const filteredGoals = goals
-                .filter(g => g.type === viewMode)
+                .filter(g => g.type === viewMode && g.status !== 'COMPLETED')
                 .sort((a, b) => {
                     if (!a.period || !b.period) return 0;
                     return a.period.localeCompare(b.period);
                 });
 
-            const adjustGoal = async (goalId, amount) => {
-                await updateDoc(doc(db, "goals", goalId), { current: increment(amount) });
+            const adjustGoal = async (goal, amount) => {
+                const newCurrent = (goal.current || 0) + amount;
+                
+                if (goal.target && newCurrent >= goal.target && amount > 0) {
+                     if (confirm(`🎉 Amazing! You've reached your target for "${goal.name}". Mark as Completed?`)) {
+                        await updateDoc(doc(db, "goals", goal.id), { 
+                            current: newCurrent,
+                            status: 'COMPLETED',
+                            completedAt: Date.now()
+                        });
+                     } else {
+                         await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
+                     }
+                } else {
+                     await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
+                }
             };
 
             const getGoalStatus = (goalPeriod) => {
@@ -619,7 +801,7 @@
                     <div className="space-y-4">
                         {filteredGoals.length === 0 ? (
                             <div className="text-center p-8 text-slate-500 bg-white/5 rounded-2xl border border-white/5 border-dashed">
-                                No {viewMode.toLowerCase()} goals found. Add one in settings.
+                                No active {viewMode.toLowerCase()} goals found.
                             </div>
                         ) : (
                             filteredGoals.map(goal => {
@@ -664,8 +846,8 @@
                                             </div>
                                         )}
                                         <div className="flex space-x-3 pt-2 relative z-10">
-                                            <button onClick={() => adjustGoal(goal.id, -1)} className="flex-1 bg-white/5 hover:bg-white/10 p-2 rounded-xl flex items-center justify-center border border-white/10"><Minus size={20} className="text-slate-300" /></button>
-                                            <button onClick={() => adjustGoal(goal.id, 1)} className="flex-1 bg-white/10 hover:bg-white/20 p-2 rounded-xl flex items-center justify-center border border-white/10"><Plus size={20} className="text-white" /></button>
+                                            <button onClick={() => adjustGoal(goal, -1)} className="flex-1 bg-white/5 hover:bg-white/10 p-2 rounded-xl flex items-center justify-center border border-white/10"><Minus size={20} className="text-slate-300" /></button>
+                                            <button onClick={() => adjustGoal(goal, 1)} className="flex-1 bg-white/10 hover:bg-white/20 p-2 rounded-xl flex items-center justify-center border border-white/10"><Plus size={20} className="text-white" /></button>
                                         </div>
                                     </GlassCard>
                                 );
