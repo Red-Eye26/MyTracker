@@ -7,12 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Add Babel for JSX support -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Add Poppins Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
       body {
         background-color: #0f172a; /* slate-900 fallback */
         color: #f1f5f9; /* slate-100 */
         -webkit-font-smoothing: antialiased;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-family: 'Poppins', sans-serif; /* Changed to Poppins */
       }
       /* Hide scrollbar for clean mobile look */
       ::-webkit-scrollbar {
@@ -40,8 +45,9 @@
         from { opacity: 0; transform: translateX(100%); }
         to { opacity: 1; transform: translateX(0); }
       }
-      /* Date picker custom styles */
-      input[type="date"]::-webkit-calendar-picker-indicator {
+      /* Date picker custom styles - Invert colors for dark mode */
+      input[type="date"]::-webkit-calendar-picker-indicator,
+      input[type="month"]::-webkit-calendar-picker-indicator {
         filter: invert(1);
         cursor: pointer;
       }
@@ -72,7 +78,7 @@
             Plus, Minus, Trophy, CalendarRange, 
             TrendingUp, Zap, CheckCircle2, 
             Trash2, LogOut, PlusCircle, Check, Lock, ShieldAlert,
-            Lightbulb, ArrowLeft, CheckSquare, CalendarDays, Rocket
+            Lightbulb, ArrowLeft, CheckSquare, CalendarDays, Rocket, BarChart3
         } from 'lucide-react';
         
         import { initializeApp } from "firebase/app";
@@ -97,13 +103,12 @@
         };
 
         const GLASS_CLASSES = "bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg";
-        const INPUT_CLASSES = "w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-white/30 transition-colors";
+        const INPUT_CLASSES = "w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-white/30 transition-colors font-poppins";
         const BUTTON_CLASSES = "w-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-medium py-3 rounded-xl transition-all border border-white/5";
 
         const Tab = {
             TODAY: 'TODAY',
             GOALS: 'GOALS',
-            DASHBOARD: 'DASHBOARD',
             SETTINGS: 'SETTINGS',
         };
 
@@ -111,6 +116,18 @@
         const app = initializeApp(FIREBASE_CONFIG);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // --- HELPERS ---
+        // Format Date to dd/mm/yyyy
+        const formatDateDisplay = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB'); // dd/mm/yyyy
+        };
+        
+        const getTodayString = () => new Date().toISOString().split('T')[0];
+        const getCurrentMonthStr = () => new Date().toISOString().slice(0, 7);
+        const getCurrentYearStr = () => new Date().getFullYear().toString();
 
         // --- AUTH LOGIC ---
         const signInWithGoogle = async () => {
@@ -144,10 +161,6 @@
             });
         };
 
-        const getTodayString = () => new Date().toISOString().split('T')[0];
-        const getCurrentMonthStr = () => new Date().toISOString().slice(0, 7);
-        const getCurrentYearStr = () => new Date().getFullYear().toString();
-
         // --- COMPONENTS ---
         
         const GlassCard = ({ children, className = "", onClick }) => (
@@ -157,7 +170,6 @@
         const BottomNav = ({ activeTab, onTabChange }) => {
             const navItems = [
                 { id: Tab.TODAY, icon: Calendar, label: "Today" },
-                { id: Tab.DASHBOARD, icon: LayoutDashboard, label: "Analytics" },
                 { id: Tab.GOALS, icon: Target, label: "Goals" },
                 { id: Tab.SETTINGS, icon: Settings, label: "Settings" },
             ];
@@ -196,24 +208,21 @@
             const [activeGoals, setActiveGoals] = useState([]);
             const todayStr = getTodayString();
             const currentMonth = getCurrentMonthStr();
-            const currentYear = getCurrentYearStr();
 
             useEffect(() => {
-                // Fetch Habits
                 const unsubHabits = onSnapshot(query(collection(db, "habits"), where("uid", "==", user.uid)), 
                     (snap) => setHabits(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.name.localeCompare(b.name))));
                 
-                // Fetch Logs for Today
                 const unsubLogs = onSnapshot(query(collection(db, "logs"), where("uid", "==", user.uid), where("dateString", "==", todayStr)),
                     (snap) => setLogs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
 
-                // Fetch Active Goals (Monthly & Yearly) for Today's view
                 const unsubGoals = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid)), 
                     (snap) => {
                         const allGoals = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        // Show goals for current month OR yearly
                         const releventGoals = allGoals.filter(g => 
                             (g.type === 'MONTHLY' && g.period === currentMonth) || 
-                            (g.type === 'YEARLY') // Yearly goals always show
+                            (g.type === 'YEARLY' && g.period === getCurrentYearStr())
                         );
                         setActiveGoals(releventGoals);
                     });
@@ -235,8 +244,7 @@
             };
             
             const adjustGoal = async (goalId, amount) => {
-                const goalRef = doc(db, "goals", goalId);
-                await updateDoc(goalRef, { current: increment(amount) });
+                await updateDoc(doc(db, "goals", goalId), { current: increment(amount) });
             };
 
             const completedCount = logs.length;
@@ -247,14 +255,13 @@
 
             return (
                 <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
-                    {/* Header */}
                     <div className="flex items-center justify-between px-2">
                         <div>
                             <h1 className="text-3xl font-light text-white tracking-tight">Good Morning,</h1>
                             <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">
                                 {user.displayName?.split(' ')[0] || 'User'}
                             </p>
-                            <p className="text-sm text-slate-400 mt-1">{new Date().toDateString()}</p>
+                            <p className="text-sm text-slate-400 mt-1">{formatDateDisplay(new Date())}</p>
                         </div>
                         <div className="relative w-20 h-20 flex items-center justify-center">
                             <svg className="transform -rotate-90 w-20 h-20">
@@ -265,7 +272,6 @@
                         </div>
                     </div>
 
-                    {/* Habits List */}
                     <div className="space-y-3">
                         <h2 className="px-2 text-sm font-semibold text-slate-400 uppercase tracking-wider">Daily Routine</h2>
                         {habits.length === 0 ? (
@@ -285,7 +291,6 @@
                         )}
                     </div>
 
-                    {/* Active Goals Section in Today View */}
                     {activeGoals.length > 0 && (
                         <div className="space-y-3 pt-2">
                              <h2 className="px-2 text-sm font-semibold text-slate-400 uppercase tracking-wider">Current Focus</h2>
@@ -322,10 +327,9 @@
             );
         };
 
-        const DashboardView = ({ user }) => {
+        const AnalyticsOverlay = ({ user, onClose }) => {
             const [logs, setLogs] = useState([]);
             const [habits, setHabits] = useState([]);
-            // Initialize date range to last 30 days by default
             const [startDate, setStartDate] = useState(() => {
                 const d = new Date();
                 d.setDate(d.getDate() - 29);
@@ -335,56 +339,66 @@
 
             useEffect(() => {
                 const unsubHabits = onSnapshot(query(collection(db, "habits"), where("uid", "==", user.uid)), (snap) => setHabits(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-                
-                // Fetch ALL logs initially - for client side filtering logic (better for small datasets vs complex firestore queries)
-                // In a production app with huge data, we would query by date range in Firestore.
                 const unsubLogs = onSnapshot(query(collection(db, "logs"), where("uid", "==", user.uid)), 
                     (snap) => setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-                
                 return () => { unsubHabits(); unsubLogs(); };
             }, [user.uid]);
 
-            // Filter logs based on date range
             const filteredLogs = useMemo(() => {
                 return logs.filter(log => log.dateString >= startDate && log.dateString <= endDate);
             }, [logs, startDate, endDate]);
 
-            // Analytics Logic
+            // 1. Total Stats
             const totalCompletions = filteredLogs.length;
-            
-            // Heatmap & Graph Data Generation
+
+            // 2. Weekly Pattern (Mon-Sun)
+            const weeklyPattern = useMemo(() => {
+                const days = [0,0,0,0,0,0,0]; // Sun to Sat
+                filteredLogs.forEach(log => {
+                    const d = new Date(log.dateString).getDay();
+                    days[d]++;
+                });
+                // Rotate to make Monday first [1,2,3,4,5,6,0]
+                return [...days.slice(1), days[0]];
+            }, [filteredLogs]);
+            const maxWeekly = Math.max(...weeklyPattern, 1);
+            const weekLabels = ['M','T','W','T','F','S','S'];
+
+            // 3. Habit Leaderboard
+            const habitLeaderboard = useMemo(() => {
+                const counts = {};
+                filteredLogs.forEach(l => counts[l.habitId] = (counts[l.habitId] || 0) + 1);
+                return habits.map(h => ({
+                    name: h.name,
+                    count: counts[h.id] || 0
+                })).sort((a, b) => b.count - a.count).slice(0, 5); // Top 5
+            }, [filteredLogs, habits]);
+
+            // 4. Consistency Graph Data
             const dateMap = useMemo(() => {
                 const map = new Map();
                 const start = new Date(startDate);
                 const end = new Date(endDate);
-                
-                // Fill all dates in range with 0
                 for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                     map.set(d.toISOString().split('T')[0], 0);
                 }
-                
-                // Fill actual counts
                 filteredLogs.forEach(log => {
                     const val = map.get(log.dateString) || 0;
                     map.set(log.dateString, val + 1);
                 });
                 return map;
             }, [filteredLogs, startDate, endDate]);
-
             const chartData = Array.from(dateMap.entries()).sort();
             const maxCount = Math.max(...chartData.map(([, count]) => count), 1);
-
-            // SVG Path for Area Chart
             const getSvgPath = () => {
                 if (chartData.length < 2) return "";
                 const width = 100;
                 const height = 40;
                 const dx = width / (chartData.length - 1);
-                
                 let path = `M 0,${height} `;
                 chartData.forEach(([, count], i) => {
                     const x = i * dx;
-                    const y = height - (count / maxCount) * height * 0.8; // Use 80% height max
+                    const y = height - (count / maxCount) * height * 0.8;
                     path += `L ${x},${y} `;
                 });
                 path += `L 100,${height} Z`;
@@ -392,76 +406,109 @@
             };
 
             return (
-                <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
-                    <div className="px-2">
-                        <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-2">
-                            Analytics <TrendingUp className="text-emerald-400" size={28} />
-                        </h1>
+                <div className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto animate-slide-in-right">
+                    <div className="max-w-md mx-auto min-h-screen p-4 flex flex-col space-y-6">
+                        <div className="flex items-center gap-4">
+                            <button onClick={onClose} className="p-2 bg-white/10 rounded-full hover:bg-white/20"><ArrowLeft size={20} /></button>
+                            <h1 className="text-2xl font-light text-white flex items-center gap-2">Analytics <TrendingUp className="text-emerald-400" size={24} /></h1>
+                        </div>
+
+                        {/* Date Picker Range */}
+                        <GlassCard className="p-3">
+                             <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
+                                 <CalendarDays size={14} /> <span>Analysis Range</span>
+                             </div>
+                             <div className="flex gap-2">
+                                 <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={INPUT_CLASSES + " py-2 text-xs"} />
+                                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={INPUT_CLASSES + " py-2 text-xs"} />
+                             </div>
+                        </GlassCard>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <GlassCard className="p-4 flex flex-col items-center justify-center">
+                                <span className="text-3xl font-bold text-emerald-400">{totalCompletions}</span>
+                                <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1 text-center">Total Follows</span>
+                            </GlassCard>
+                            <GlassCard className="p-4 flex flex-col items-center justify-center">
+                                <span className="text-3xl font-bold text-blue-400">{habits.length}</span>
+                                <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Active Habits</span>
+                            </GlassCard>
+                        </div>
+
+                        {/* Weekly Pattern Chart */}
+                        <section>
+                             <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Weekly Productivity Pattern</h2>
+                             <GlassCard className="p-5 flex items-end justify-between h-32">
+                                 {weeklyPattern.map((count, i) => {
+                                     const heightPercent = (count / maxWeekly) * 100;
+                                     return (
+                                         <div key={i} className="flex flex-col items-center gap-2 w-full">
+                                             <div className="w-2 bg-blue-500/50 rounded-t-sm transition-all duration-500" style={{ height: `${heightPercent || 5}%` }}></div>
+                                             <span className="text-[10px] text-slate-500">{weekLabels[i]}</span>
+                                         </div>
+                                     )
+                                 })}
+                             </GlassCard>
+                        </section>
+
+                        {/* Habit Leaderboard */}
+                        <section>
+                            <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Top Habits (Selected Range)</h2>
+                            <GlassCard className="p-4 space-y-3">
+                                {habitLeaderboard.map((h, i) => (
+                                    <div key={i} className="flex items-center gap-3">
+                                        <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-slate-400">#{i+1}</div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between text-xs mb-1">
+                                                <span className="text-slate-200">{h.name}</span>
+                                                <span className="text-emerald-400 font-bold">{h.count}</span>
+                                            </div>
+                                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-emerald-500" style={{ width: `${(h.count / Math.max(habitLeaderboard[0].count, 1)) * 100}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {habitLeaderboard.length === 0 && <div className="text-xs text-slate-500 text-center">No data available.</div>}
+                            </GlassCard>
+                        </section>
+
+                        {/* Consistency Graph */}
+                        <section>
+                             <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Consistency Trend</h2>
+                             <GlassCard className="p-4 overflow-hidden relative h-32 flex items-end">
+                                 <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="w-full h-full absolute bottom-0 left-0">
+                                     <defs>
+                                         <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+                                             <stop offset="0%" stopColor="#10b981" stopOpacity="0.5" />
+                                             <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                                         </linearGradient>
+                                     </defs>
+                                     <path d={getSvgPath()} fill="url(#gradient)" stroke="#34d399" strokeWidth="0.5" />
+                                 </svg>
+                             </GlassCard>
+                        </section>
+
+                        {/* Heatmap */}
+                        <section>
+                            <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Heatmap</h2>
+                            <GlassCard className="p-4 overflow-x-auto">
+                                <div className="flex flex-wrap gap-1 content-start justify-center" style={{ minWidth: '100%' }}>
+                                    {chartData.map(([date, count]) => {
+                                        let bgClass = "bg-white/5";
+                                        if (count > 0) bgClass = "bg-emerald-900";
+                                        if (count > 1) bgClass = "bg-emerald-700";
+                                        if (count > 3) bgClass = "bg-emerald-500";
+                                        if (count > 5) bgClass = "bg-emerald-300";
+                                        return (
+                                            <div key={date} className={`w-3 h-3 rounded-sm ${bgClass}`} title={`${formatDateDisplay(date)}: ${count} habits`} />
+                                        );
+                                    })}
+                                </div>
+                            </GlassCard>
+                        </section>
+                        <div className="h-10"></div>
                     </div>
-
-                    {/* Date Picker Range */}
-                    <GlassCard className="p-3">
-                         <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
-                             <CalendarDays size={14} /> <span>Analysis Range</span>
-                         </div>
-                         <div className="flex gap-2">
-                             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-black/30 border border-white/10 rounded-lg p-2 text-white text-xs w-full focus:outline-none" />
-                             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-black/30 border border-white/10 rounded-lg p-2 text-white text-xs w-full focus:outline-none" />
-                         </div>
-                    </GlassCard>
-
-                    {/* Key Stats */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <GlassCard className="p-4 flex flex-col items-center justify-center">
-                            <span className="text-3xl font-bold text-emerald-400">{totalCompletions}</span>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1 text-center">Total Habit Follows</span>
-                        </GlassCard>
-                        <GlassCard className="p-4 flex flex-col items-center justify-center">
-                            <span className="text-3xl font-bold text-blue-400">{habits.length}</span>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Active Habits</span>
-                        </GlassCard>
-                    </div>
-
-                    {/* Consistency Graph */}
-                    <section>
-                         <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Consistency Trend</h2>
-                         <GlassCard className="p-4 overflow-hidden relative h-32 flex items-end">
-                             <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="w-full h-full absolute bottom-0 left-0">
-                                 <defs>
-                                     <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
-                                         <stop offset="0%" stopColor="#10b981" stopOpacity="0.5" />
-                                         <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                                     </linearGradient>
-                                 </defs>
-                                 <path d={getSvgPath()} fill="url(#gradient)" stroke="#34d399" strokeWidth="0.5" />
-                             </svg>
-                         </GlassCard>
-                    </section>
-
-                    {/* Contribution Heatmap */}
-                    <section>
-                        <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Heatmap</h2>
-                        <GlassCard className="p-4 overflow-x-auto">
-                            <div className="flex flex-wrap gap-1 content-start justify-center" style={{ minWidth: '100%' }}>
-                                {chartData.map(([date, count]) => {
-                                    // Heatmap colors based on intensity
-                                    let bgClass = "bg-white/5";
-                                    if (count > 0) bgClass = "bg-emerald-900";
-                                    if (count > 1) bgClass = "bg-emerald-700";
-                                    if (count > 3) bgClass = "bg-emerald-500";
-                                    if (count > 5) bgClass = "bg-emerald-300";
-
-                                    return (
-                                        <div 
-                                            key={date} 
-                                            className={`w-3 h-3 rounded-sm ${bgClass}`} 
-                                            title={`${date}: ${count} habits`}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        </GlassCard>
-                    </section>
                 </div>
             );
         };
@@ -478,7 +525,7 @@
 
             const filteredGoals = goals.filter(g => {
                 if (viewMode === 'YEARLY') return g.type === 'YEARLY';
-                // Only show current month's goals in monthly view
+                // Only show current month's goals in monthly view default list, user can change logic if they want history
                 if (viewMode === 'MONTHLY') return g.type === 'MONTHLY' && g.period === currentMonthStr;
                 return false;
             });
@@ -504,7 +551,7 @@
                     <div className="space-y-4">
                         {filteredGoals.length === 0 ? (
                             <div className="text-center p-8 text-slate-500 bg-white/5 rounded-2xl border border-white/5 border-dashed">
-                                No {viewMode.toLowerCase()} goals for this specific time period.
+                                No {viewMode.toLowerCase()} goals for this specific period ({viewMode === 'MONTHLY' ? currentMonthStr : getCurrentYearStr()}).
                             </div>
                         ) : (
                             filteredGoals.map(goal => {
@@ -604,7 +651,7 @@
                                         <div className="flex-1">
                                             <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{note.text}</p>
                                             <p className="text-[10px] text-slate-500 mt-2">
-                                                {new Date(note.createdAt).toLocaleDateString()}
+                                                {formatDateDisplay(new Date(note.createdAt))}
                                             </p>
                                         </div>
                                         {note.status === 'PENDING' && (
@@ -623,10 +670,16 @@
 
         const SettingsView = ({ user }) => {
             const [showNotes, setShowNotes] = useState(false);
+            const [showAnalytics, setShowAnalytics] = useState(false);
+            
             const [habitName, setHabitName] = useState("");
+            
+            // Goal State
             const [goalName, setGoalName] = useState("");
-            const [goalTarget, setGoalTarget] = useState(""); // Optional now
+            const [goalTarget, setGoalTarget] = useState(""); 
             const [goalType, setGoalType] = useState('MONTHLY');
+            const [selectedPeriod, setSelectedPeriod] = useState(getCurrentMonthStr()); // Default 2023-10
+            
             const [habits, setHabits] = useState([]);
             const [goals, setGoals] = useState([]);
 
@@ -647,19 +700,20 @@
                 e.preventDefault();
                 if (!goalName.trim()) return;
                 
-                const targetVal = goalTarget ? Number(goalTarget) : 0; // 0 means infinite/optional
-                const data = { uid: user.uid, name: goalName, target: targetVal, current: 0, createdAt: Date.now(), type: goalType };
+                const targetVal = goalTarget ? Number(goalTarget) : 0; 
+                const data = { 
+                    uid: user.uid, 
+                    name: goalName, 
+                    target: targetVal, 
+                    current: 0, 
+                    createdAt: Date.now(), 
+                    type: goalType,
+                    period: selectedPeriod // Use specific selected period
+                };
                 
-                // Assign specific period
-                if (goalType === 'MONTHLY') {
-                    data.period = getCurrentMonthStr(); // e.g., 2023-10
-                } else {
-                    data.period = getCurrentYearStr(); // e.g., 2023
-                }
-
                 await addDoc(collection(db, "goals"), data);
                 setGoalName(""); setGoalTarget("");
-                alert(`${goalType === 'MONTHLY' ? 'Monthly' : 'Yearly'} goal added!`);
+                alert(`${goalType === 'MONTHLY' ? 'Monthly' : 'Yearly'} goal added for ${selectedPeriod}!`);
             };
 
             const handleDelete = async (collectionName, id) => {
@@ -667,6 +721,7 @@
             };
 
             if (showNotes) return <NotesOverlay user={user} onClose={() => setShowNotes(false)} />;
+            if (showAnalytics) return <AnalyticsOverlay user={user} onClose={() => setShowAnalytics(false)} />;
 
             return (
                 <div className="flex flex-col space-y-8 pb-24 animate-fade-in">
@@ -677,19 +732,23 @@
                         </button>
                     </div>
 
-                    {/* Someday Notes Entry */}
-                    <GlassCard className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors group" onClick={() => setShowNotes(true)}>
-                        <div className="flex items-center gap-3">
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Someday Notes Entry */}
+                        <GlassCard className="p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/10 transition-colors group text-center h-32" onClick={() => setShowNotes(true)}>
                             <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                                 <Lightbulb size={20} className="text-amber-400 group-hover:scale-110 transition-transform" />
                             </div>
-                            <div>
-                                <h3 className="text-white font-medium">Someday Notes</h3>
-                                <p className="text-xs text-slate-400">Capture ideas & execute them later</p>
+                            <h3 className="text-white font-medium text-sm">Someday Notes</h3>
+                        </GlassCard>
+
+                        {/* Analytics Entry */}
+                        <GlassCard className="p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/10 transition-colors group text-center h-32" onClick={() => setShowAnalytics(true)}>
+                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                <BarChart3 size={20} className="text-blue-400 group-hover:scale-110 transition-transform" />
                             </div>
-                        </div>
-                        <div className="bg-white/5 p-2 rounded-lg"><Plus size={16} /></div>
-                    </GlassCard>
+                            <h3 className="text-white font-medium text-sm">Analytics</h3>
+                        </GlassCard>
+                    </div>
 
                     <section>
                         <h2 className="text-lg font-semibold text-slate-300 mb-3 px-2">Manage Habits</h2>
@@ -714,11 +773,22 @@
                         <GlassCard className="p-5">
                             <form onSubmit={handleCreateGoal} className="space-y-4">
                                 <div className="flex bg-black/30 p-1 rounded-lg">
-                                    <button type="button" onClick={() => setGoalType('MONTHLY')} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'MONTHLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Monthly Goal</button>
-                                    <button type="button" onClick={() => setGoalType('YEARLY')} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'YEARLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Yearly Goal</button>
+                                    <button type="button" onClick={() => { setGoalType('MONTHLY'); setSelectedPeriod(getCurrentMonthStr()); }} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'MONTHLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Monthly</button>
+                                    <button type="button" onClick={() => { setGoalType('YEARLY'); setSelectedPeriod(getCurrentYearStr()); }} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'YEARLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Yearly</button>
                                 </div>
+                                
                                 <input type="text" value={goalName} onChange={(e) => setGoalName(e.target.value)} placeholder={goalType === 'MONTHLY' ? "e.g., Read 2 Books" : "e.g., Save $5000"} className={INPUT_CLASSES} />
                                 <input type="number" value={goalTarget} onChange={(e) => setGoalTarget(e.target.value)} placeholder="Target (Optional)" className={INPUT_CLASSES} />
+                                
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-400 ml-1">Deadline / Period</label>
+                                    {goalType === 'MONTHLY' ? (
+                                        <input type="month" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className={INPUT_CLASSES} />
+                                    ) : (
+                                        <input type="number" min="2024" max="2050" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className={INPUT_CLASSES} />
+                                    )}
+                                </div>
+
                                 <button type="submit" className={BUTTON_CLASSES}><div className="flex items-center justify-center gap-2"><PlusCircle size={20} /> Add {goalType === 'MONTHLY' ? 'Monthly' : 'Yearly'} Goal</div></button>
                             </form>
                         </GlassCard>
@@ -786,7 +856,6 @@
                 <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-slate-100 font-sans selection:bg-blue-500/30">
                     <main className="max-w-md mx-auto min-h-screen p-4">
                         {activeTab === Tab.TODAY && <TodayView user={user} />}
-                        {activeTab === Tab.DASHBOARD && <DashboardView user={user} />}
                         {activeTab === Tab.GOALS && <GoalsView user={user} />}
                         {activeTab === Tab.SETTINGS && <SettingsView user={user} />}
                     </main>
