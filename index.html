@@ -5,70 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Life Tracker</title>
     
-    <!-- App Icon / Mobile Home Screen Image -->
+    <!-- App Icon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%230f172a'/%3E%3Ccircle cx='256' cy='256' r='160' fill='url(%23grad)'/%3E%3Cpath d='M164 266 L224 326 L348 186' stroke='white' stroke-width='40' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%233b82f6;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23a855f7;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%230f172a'/%3E%3Ccircle cx='256' cy='256' r='160' fill='url(%23grad)'/%3E%3Cpath d='M164 266 L224 326 L348 186' stroke='white' stroke-width='40' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%233b82f6;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23a855f7;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Add Babel for JSX support -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Add Poppins Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
       body {
-        background-color: #0f172a; /* slate-900 fallback */
-        color: #f1f5f9; /* slate-100 */
         -webkit-font-smoothing: antialiased;
-        font-family: 'Poppins', sans-serif; /* Changed to Poppins */
+        font-family: 'Poppins', sans-serif;
       }
-      /* Hide scrollbar for clean mobile look */
+      /* Hide scrollbar */
       ::-webkit-scrollbar {
         width: 0px;
         background: transparent;
       }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out;
-      }
-      .animate-fade-in-up {
-        animation: fadeInUp 0.5s ease-out;
-      }
-      .animate-slide-in-right {
-        animation: slideInRight 0.3s ease-out;
-      }
-      .cursor-blink {
-        animation: blink 1s step-end infinite;
-      }
-      @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes slideInRight {
-        from { opacity: 0; transform: translateX(100%); }
-        to { opacity: 1; transform: translateX(0); }
-      }
-      /* Date picker custom styles - Invert colors for dark mode */
-      input[type="date"]::-webkit-calendar-picker-indicator,
-      input[type="month"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-      }
+      .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+      .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+      .animate-slide-in-right { animation: slideInRight 0.3s ease-out; }
+      .cursor-blink { animation: blink 1s step-end infinite; }
+      
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
     </style>
     <script type="importmap">
     {
       "imports": {
         "react": "https://esm.sh/react@18.3.1",
-        "react/": "https://esm.sh/react@18.3.1/",
         "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
         "lucide-react": "https://esm.sh/lucide-react@0.344.0",
         "firebase/app": "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js",
@@ -81,7 +51,6 @@
 <body>
     <div id="root"></div>
 
-    <!-- Changed type to text/babel and added data-type="module" -->
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useMemo, useRef } from 'react';
         import ReactDOM from 'react-dom/client';
@@ -91,7 +60,7 @@
             TrendingUp, Zap, CheckCircle2, 
             Trash2, LogOut, PlusCircle, Check, Lock, ShieldAlert,
             Lightbulb, ArrowLeft, CheckSquare, CalendarDays, Rocket, BarChart3, X,
-            Clock, CalendarClock, Medal
+            Clock, Medal, Activity, Flame, MoreHorizontal, Moon, Sun, Search, StickyNote
         } from 'lucide-react';
         
         import { initializeApp } from "firebase/app";
@@ -99,13 +68,11 @@
             getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
         } from "firebase/auth";
         import { 
-            getFirestore, collection, query, where, addDoc, deleteDoc, doc, updateDoc, increment, onSnapshot, limit, orderBy 
+            getFirestore, collection, query, where, addDoc, deleteDoc, doc, updateDoc, onSnapshot 
         } from "firebase/firestore";
 
-        // --- SECURITY CONFIGURATION ---
+        // --- CONFIG ---
         const ALLOWED_EMAIL = ""; 
-
-        // --- CONSTANTS ---
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyCFQQHx_XumqSgEWfZQav8Wpx0UxMmFj6s",
             authDomain: "life-tracker-1d35b.firebaseapp.com",
@@ -116,132 +83,105 @@
         };
 
         const QUOTES = [
-            "We don’t need effort, we need results.",
-            "Stop explaining—just accept you failed.",
-            "Anyone else could’ve done this better.",
-            "You’re replaceable, don’t forget that.",
-            "Trying isn’t impressive.",
-            "You always need more time than others.",
-            "This isn’t hard—why are you struggling?",
-            "We lowered expectations for you already.",
-            "You’re not bad, just… not good.",
-            "You make things more complicated than they need to be.",
-            "You had one job.",
-            "Excuses won’t change the outcome.",
-            "If you were capable, we wouldn’t be having this conversation.",
-            "You’re too slow for real pressure.",
-            "Potential doesn’t matter if you never deliver.",
-            "We can’t keep carrying you.",
-            "Others don’t need this much guidance.",
-            "You’re falling behind—and it shows.",
-            "No one asked you to struggle this much.",
-            "At some point, effort stops being an excuse.",
-            "You always miss something important.",
-            "You’re not failing dramatically—just consistently.",
-            "We expected growth, not repetition.",
-            "You’re exhausting to manage.",
-            "You don’t learn fast enough.",
-            "This shouldn’t need to be explained again.",
-            "You’re not improving at the pace we need.",
-            "We can’t wait forever for you to catch up.",
-            "Being busy doesn’t mean being useful.",
-            "You cost more time than you save.",
-            "You’re not meeting the standard—again.",
-            "We thought you’d figure this out by now.",
-            "Your best isn’t enough here.",
-            "You slow the whole process down.",
-            "You’re always one step behind everyone else.",
-            "We need reliability, not apologies.",
-            "You overestimate your contribution.",
-            "This role might be too much for you.",
-            "We don’t see leadership in you.",
-            "If this is your limit, say it."
+            "We don’t need effort, we need results.", "Stop explaining—just accept you failed.", "Anyone else could’ve done this better.",
+            "You’re replaceable, don’t forget that.", "Trying isn’t impressive.", "You always need more time than others.",
+            "This isn’t hard—why are you struggling?", "We lowered expectations for you already.", "You’re not bad, just… not good.",
+            "You make things more complicated than they need to be.", "You had one job.", "Excuses won’t change the outcome."
         ];
 
-        const GLASS_CLASSES = "bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg";
-        const INPUT_CLASSES = "w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-white/30 transition-colors font-poppins";
-        const BUTTON_CLASSES = "w-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-medium py-3 rounded-xl transition-all border border-white/5";
+        // --- THEME STYLES ---
+        const getStyles = (isDark) => ({
+            bg: isDark ? "bg-[#0f172a]" : "bg-slate-50",
+            textMain: isDark ? "text-slate-100" : "text-slate-900",
+            textSub: isDark ? "text-slate-400" : "text-slate-500",
+            card: isDark 
+                ? "bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg" 
+                : "bg-white border border-slate-100 shadow-md shadow-slate-200/50",
+            input: isDark 
+                ? "bg-black/20 border-white/10 text-white placeholder-slate-500" 
+                : "bg-slate-100 border-slate-200 text-slate-900 placeholder-slate-400",
+            nav: isDark
+                ? "bg-black/60 backdrop-blur-2xl border-t border-white/10"
+                : "bg-white/90 backdrop-blur-2xl border-t border-slate-200 shadow-upper",
+            iconBg: isDark ? "bg-white/10" : "bg-slate-100",
+            btnPrimary: "bg-amber-500 hover:bg-amber-600 text-black shadow-lg shadow-amber-500/20",
+            btnSecondary: isDark 
+                ? "bg-white/10 hover:bg-white/15 text-white border border-white/10"
+                : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200",
+            divider: isDark ? "border-white/5" : "border-slate-100",
+            modalBg: isDark ? "bg-[#0f172a]" : "bg-slate-50",
+            chartBar: isDark ? "bg-blue-500/50" : "bg-blue-500",
+            heatmapOn: isDark ? "bg-emerald-500" : "bg-emerald-400",
+            heatmapOff: isDark ? "bg-white/5" : "bg-slate-200",
+        });
 
-        const Tab = {
-            TODAY: 'TODAY',
-            GOALS: 'GOALS',
-            SETTINGS: 'SETTINGS',
-        };
+        const Tab = { TODAY: 'TODAY', GOALS: 'GOALS', SETTINGS: 'SETTINGS' };
 
-        // --- FIREBASE SERVICES ---
         const app = initializeApp(FIREBASE_CONFIG);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         // --- HELPERS ---
-        // Format Date to dd/mm/yyyy
         const formatDateDisplay = (dateStr) => {
             if (!dateStr) return '';
             const date = new Date(dateStr);
-            return date.toLocaleDateString('en-GB'); // dd/mm/yyyy
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); 
+        };
+        const getDayName = (date = new Date()) => date.toLocaleDateString('en-US', { weekday: 'long' });
+        
+        // FIX: Use 'en-CA' (YYYY-MM-DD) for LOCAL time, not UTC (toISOString)
+        // This ensures if it's 12:01 AM locally, it counts as the new day.
+        const getTodayString = () => {
+            const d = new Date();
+            const offset = d.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(d - offset)).toISOString().slice(0, 10);
+            // Better cross-browser local date:
+            return new Date().toLocaleDateString('en-CA'); 
         };
         
-        const getTodayString = () => new Date().toISOString().split('T')[0];
+        const getLastMonthStr = () => {
+            const d = new Date();
+            d.setDate(d.getDate() - 30);
+            return d.toLocaleDateString('en-CA');
+        };
+
         const getCurrentMonthStr = () => new Date().toISOString().slice(0, 7);
         const getCurrentYearStr = () => new Date().getFullYear().toString();
-
         const formatPeriodDisplay = (type, period) => {
             if (!period) return 'No Deadline';
-            if (type === 'YEARLY') return period; // 2024
-            // Monthly: 2024-10
+            if (type === 'YEARLY') return period; 
             const [y, m] = period.split('-');
             const date = new Date(y, m - 1);
             return date.toLocaleString('default', { month: 'long', year: 'numeric' });
         };
 
-        // --- AUTH LOGIC ---
         const signInWithGoogle = async () => {
             const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Firebase Auth failed:", error);
-                if (error.code === 'auth/unauthorized-domain') {
-                    const currentDomain = window.location.hostname;
-                    alert(`⚠️ DOMAIN NOT AUTHORIZED ⚠️\nAdd this to Firebase Console: ${currentDomain}`);
-                } else if (error.code !== 'auth/popup-closed-by-user') {
-                    alert("Sign in failed: " + error.message);
-                }
-            }
-        };
-
-        const logout = async () => {
-            try { await signOut(auth); } catch (error) { console.error("Error signing out", error); }
-        };
-
-        const subscribeToAuth = (callback) => {
-            return onAuthStateChanged(auth, (user) => {
-                if (user && ALLOWED_EMAIL && user.email !== ALLOWED_EMAIL) {
-                    alert("Access Denied: Restricted.");
-                    signOut(auth);
-                    callback(null);
-                } else {
-                    callback(user);
-                }
-            });
+            try { await signInWithPopup(auth, provider); } catch (error) { console.error("Firebase Auth failed:", error); }
         };
 
         // --- COMPONENTS ---
         
-        const GlassCard = ({ children, className = "", onClick }) => (
-            <div className={`${GLASS_CLASSES} ${className}`} onClick={onClick}>{children}</div>
-        );
+        const Card = ({ children, className = "", onClick, isDark }) => {
+            const styles = getStyles(isDark);
+            return (
+                <div className={`${styles.card} rounded-3xl transition-all duration-300 ${className}`} onClick={onClick}>
+                    {children}
+                </div>
+            );
+        };
 
-        const BottomNav = ({ activeTab, onTabChange }) => {
+        const BottomNav = ({ activeTab, onTabChange, isDark }) => {
+            const styles = getStyles(isDark);
             const navItems = [
-                { id: Tab.TODAY, icon: Calendar, label: "Today" },
+                { id: Tab.TODAY, icon: LayoutDashboard, label: "Home" },
                 { id: Tab.GOALS, icon: Target, label: "Goals" },
                 { id: Tab.SETTINGS, icon: Settings, label: "Settings" },
             ];
 
             return (
                 <div className="fixed bottom-0 left-0 right-0 p-4 z-40">
-                    <nav className={`${GLASS_CLASSES} flex justify-around items-center p-2 bg-black/60 backdrop-blur-2xl`}>
+                    <nav className={`${styles.nav} rounded-3xl flex justify-around items-center p-2 transition-all duration-300`}>
                         {navItems.map((item) => {
                             const isActive = activeTab === item.id;
                             const Icon = item.icon;
@@ -249,8 +189,8 @@
                                 <button
                                     key={item.id}
                                     onClick={() => onTabChange(item.id)}
-                                    className={`flex flex-col items-center justify-center p-3 rounded-xl w-full transition-all duration-300 ${
-                                        isActive ? 'text-white bg-white/10' : 'text-slate-500 hover:text-slate-300'
+                                    className={`flex flex-col items-center justify-center p-3 rounded-2xl w-full transition-all duration-300 ${
+                                        isActive ? (isDark ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100') : (isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600')
                                     }`}
                                 >
                                     <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
@@ -265,617 +205,308 @@
             );
         };
 
-        const Typewriter = () => {
+        const Typewriter = ({ isDark }) => {
             const [index, setIndex] = useState(0);
             const [subIndex, setSubIndex] = useState(0);
-            const [reverse, setReverse] = useState(false);
-            const [phase, setPhase] = useState('TYPING'); // TYPING | PAUSING | DELETING
+            const [phase, setPhase] = useState('TYPING'); 
+            const styles = getStyles(isDark);
 
-            // Shuffle quotes on mount or pick random start
             const randomStart = useMemo(() => Math.floor(Math.random() * QUOTES.length), []);
             const currentIndex = (randomStart + index) % QUOTES.length;
             const currentQuote = QUOTES[currentIndex];
 
             useEffect(() => {
                 let timeout;
-
                 if (phase === 'TYPING') {
                     if (subIndex < currentQuote.length) {
-                        timeout = setTimeout(() => {
-                            setSubIndex(prev => prev + 1);
-                        }, 40); // Typing speed ~40ms
-                    } else {
-                        // Finished typing
-                        setPhase('PAUSING');
-                    }
+                        timeout = setTimeout(() => { setSubIndex(prev => prev + 1); }, 40);
+                    } else { setPhase('PAUSING'); }
                 } else if (phase === 'PAUSING') {
-                    timeout = setTimeout(() => {
-                        setPhase('DELETING');
-                    }, 5000); // 5 seconds rest
+                    timeout = setTimeout(() => { setPhase('DELETING'); }, 5000);
                 } else if (phase === 'DELETING') {
                     if (subIndex > 0) {
-                        timeout = setTimeout(() => {
-                            setSubIndex(prev => prev - 1);
-                        }, 25); // Backspacing speed ~25ms
-                    } else {
-                        // Finished deleting
-                        setPhase('TYPING');
-                        setIndex(prev => prev + 1);
-                    }
+                        timeout = setTimeout(() => { setSubIndex(prev => prev - 1); }, 25);
+                    } else { setPhase('TYPING'); setIndex(prev => prev + 1); }
                 }
-
                 return () => clearTimeout(timeout);
             }, [subIndex, phase, currentQuote]);
 
             return (
-                <div className="min-h-[3rem] flex items-center mb-1">
-                    <h1 className="text-xl md:text-2xl font-light text-slate-100 tracking-tight leading-snug">
-                        {currentQuote.substring(0, subIndex)}
-                        <span className="cursor-blink ml-0.5 text-blue-400 font-normal">|</span>
+                <div className="min-h-[4rem] flex items-center">
+                    <h1 className={`text-lg tracking-tight leading-snug font-medium transition-colors duration-300 ${styles.textMain}`}>
+                        "{currentQuote.substring(0, subIndex)}
+                        <span className="cursor-blink ml-0.5 text-blue-400 font-normal">|</span>"
                     </h1>
                 </div>
             );
         };
 
-        // --- VIEWS ---
-
-        const TodayView = ({ user }) => {
-            const [habits, setHabits] = useState([]);
-            const [logs, setLogs] = useState([]);
-            const [activeGoals, setActiveGoals] = useState([]);
-            const [pendingNotes, setPendingNotes] = useState([]);
-            const [showQuickNotes, setShowQuickNotes] = useState(false);
-            const [goalFilter, setGoalFilter] = useState('ALL'); // ALL | MONTHLY | YEARLY
-            
-            const todayStr = getTodayString();
-            const currentMonth = getCurrentMonthStr();
-
-            useEffect(() => {
-                const unsubHabits = onSnapshot(query(collection(db, "habits"), where("uid", "==", user.uid)), 
-                    (snap) => setHabits(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.name.localeCompare(b.name))));
-                
-                const unsubLogs = onSnapshot(query(collection(db, "logs"), where("uid", "==", user.uid), where("dateString", "==", todayStr)),
-                    (snap) => setLogs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
-
-                const unsubGoals = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid)), 
-                    (snap) => {
-                        const allGoals = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        // SHOW ALL ACTIVE GOALS (No date filtering as requested)
-                        const releventGoals = allGoals.filter(g => g.status !== 'COMPLETED');
-                        setActiveGoals(releventGoals);
-                    });
-                
-                const unsubNotes = onSnapshot(query(collection(db, "notes"), where("uid", "==", user.uid), where("status", "==", "PENDING")), 
-                    (snap) => {
-                        let allNotes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        allNotes.sort((a, b) => b.createdAt - a.createdAt);
-                        setPendingNotes(allNotes.slice(0, 3));
-                    });
-
-                return () => { unsubHabits(); unsubLogs(); unsubGoals(); unsubNotes(); };
-            }, [user.uid]);
-
-            const toggleHabit = async (habit) => {
-                const existingLog = logs.find(log => log.habitId === habit.id);
-                if (existingLog) {
-                    await deleteDoc(doc(db, "logs", existingLog.id));
-                } else {
-                    await addDoc(collection(db, "logs"), {
-                        uid: user.uid,
-                        habitId: habit.id,
-                        dateString: todayStr,
+        const CalendarStrip = ({ isDark }) => {
+            const styles = getStyles(isDark);
+            const days = useMemo(() => {
+                const result = [];
+                const today = new Date();
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() + i);
+                    result.push({
+                        date: d.getDate(),
+                        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                        isToday: i === 0
                     });
                 }
-            };
-            
-            const adjustGoal = async (goal, amount) => {
-                const newCurrent = (goal.current || 0) + amount;
-                
-                if (goal.target && newCurrent >= goal.target && amount > 0) {
-                    // Goal Completed!
-                    if (confirm(`🎉 Amazing! You've reached your target for "${goal.name}". Mark as Completed?`)) {
-                        await updateDoc(doc(db, "goals", goal.id), { 
-                            current: newCurrent,
-                            status: 'COMPLETED',
-                            completedAt: Date.now()
-                        });
-                    } else {
-                         await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
-                    }
-                } else {
-                     await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
-                }
-            };
-            
-            const markAsDone = async (goal) => {
-                if (confirm(`Mark "${goal.name}" as completed?`)) {
-                    await updateDoc(doc(db, "goals", goal.id), { 
-                        status: 'COMPLETED',
-                        completedAt: Date.now()
-                    });
-                }
-            };
-
-            const completedCount = logs.length;
-            const percentage = habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0;
-            const radius = 50;
-            const circumference = 2 * Math.PI * radius;
-            const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-            const displayGoals = activeGoals.filter(g => {
-                if (goalFilter === 'ALL') return true;
-                return g.type === goalFilter;
-            });
+                return result;
+            }, []);
 
             return (
-                <div className="flex flex-col space-y-6 pb-24 animate-fade-in relative">
-                    <div className="flex items-center justify-between px-2 pt-2">
-                        <div className="flex-1 pr-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <button onClick={() => setShowQuickNotes(true)} className="p-2 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-amber-400 border border-amber-500/20 transition-colors">
-                                    <Lightbulb size={20} />
-                                </button>
-                                <p className="text-sm text-slate-400">{formatDateDisplay(new Date())}</p>
-                            </div>
-                            
-                            {/* Typewriter Component Replacement */}
-                            <Typewriter />
-                            
+                <div className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100'} flex justify-between items-center rounded-3xl p-3 border overflow-x-auto gap-2 transition-colors duration-300`}>
+                    {days.map((d, i) => (
+                        <div key={i} className={`flex flex-col items-center justify-center min-w-[3rem] h-16 rounded-2xl transition-all ${d.isToday ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20 scale-105' : `${styles.textSub} hover:${styles.bg}`}`}>
+                            <span className="text-[10px] font-bold uppercase">{d.day}</span>
+                            <span className="text-lg font-bold">{d.date}</span>
                         </div>
-                        <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-                            <svg className="transform -rotate-90 w-20 h-20">
-                                <circle className="text-white/5" strokeWidth="6" stroke="currentColor" fill="transparent" r={radius} cx="40" cy="40" />
-                                <circle className="text-emerald-400 transition-all duration-1000 ease-out" strokeWidth="6" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="40" cy="40" />
-                            </svg>
-                            <span className="absolute text-sm font-bold text-white">{percentage}%</span>
-                        </div>
-                    </div>
-
-                    {/* Quick Notes Popup */}
-                    {showQuickNotes && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setShowQuickNotes(false)}>
-                            <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-sm p-6 shadow-2xl relative animate-fade-in-up">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-white font-medium flex items-center gap-2"><Lightbulb size={18} className="text-amber-400" /> Recent Ideas</h3>
-                                    <span className="text-xs text-slate-500">Tap anywhere to close</span>
-                                </div>
-                                <div className="space-y-3">
-                                    {pendingNotes.length === 0 ? (
-                                        <p className="text-sm text-slate-500 italic text-center py-4">No pending ideas.</p>
-                                    ) : (
-                                        pendingNotes.map(note => (
-                                            <div key={note.id} className="p-3 bg-white/5 rounded-xl border border-white/5">
-                                                <p className="text-slate-200 text-sm">{note.text}</p>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="space-y-3">
-                        <h2 className="px-2 text-sm font-semibold text-slate-400 uppercase tracking-wider">Daily Routine</h2>
-                        {habits.length === 0 ? (
-                            <div className="text-center p-6 text-slate-500 bg-white/5 rounded-2xl border border-white/5 border-dashed">No habits yet.</div>
-                        ) : (
-                            habits.map(habit => {
-                                const isCompleted = logs.some(log => log.habitId === habit.id);
-                                return (
-                                    <GlassCard key={habit.id} className={`p-4 flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer ${isCompleted ? 'bg-emerald-500/10 border-emerald-500/20' : ''}`} onClick={() => toggleHabit(habit)}>
-                                        <span className={`text-lg font-medium transition-colors ${isCompleted ? 'text-emerald-200 line-through' : 'text-slate-200'}`}>{habit.name}</span>
-                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isCompleted ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'}`}>
-                                            {isCompleted && <Check size={14} className="text-black" strokeWidth={3} />}
-                                        </div>
-                                    </GlassCard>
-                                );
-                            })
-                        )}
-                    </div>
-
-                    {activeGoals.length > 0 && (
-                        <div className="space-y-3 pt-2">
-                             <div className="flex justify-between items-center px-2">
-                                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Current Focus</h2>
-                                <div className="flex bg-white/5 rounded-lg p-0.5">
-                                    <button onClick={() => setGoalFilter('ALL')} className={`px-2 py-0.5 text-[10px] rounded ${goalFilter === 'ALL' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>All</button>
-                                    <button onClick={() => setGoalFilter('MONTHLY')} className={`px-2 py-0.5 text-[10px] rounded ${goalFilter === 'MONTHLY' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>Mo.</button>
-                                    <button onClick={() => setGoalFilter('YEARLY')} className={`px-2 py-0.5 text-[10px] rounded ${goalFilter === 'YEARLY' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>Yr.</button>
-                                </div>
-                             </div>
-                             
-                             <div className="grid gap-3">
-                                {displayGoals.length === 0 ? (
-                                    <div className="text-center text-xs text-slate-500 py-4">No {goalFilter !== 'ALL' ? goalFilter.toLowerCase() : ''} goals for this period.</div>
-                                ) : (
-                                    displayGoals.map(goal => {
-                                        const hasTarget = goal.target && goal.target > 0;
-                                        const progress = hasTarget ? Math.min(100, (goal.current / goal.target) * 100) : 0;
-                                        return (
-                                            <GlassCard key={goal.id} className="p-4 flex flex-col space-y-2">
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center gap-2">
-                                                        {goal.type === 'MONTHLY' ? <CalendarRange size={14} className="text-blue-400" /> : <Trophy size={14} className="text-amber-400" />}
-                                                        <span className="text-sm font-medium text-slate-200">{goal.name}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-sm font-bold text-white">{goal.current} {hasTarget && <span className="text-slate-500 text-xs font-normal">/ {goal.target}</span>}</span>
-                                                    </div>
-                                                </div>
-                                                {hasTarget && (
-                                                    <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500" style={{ width: `${progress}%` }} />
-                                                    </div>
-                                                )}
-                                                
-                                                <div className="pt-2">
-                                                    {!hasTarget ? (
-                                                        <button onClick={() => markAsDone(goal)} className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/20 flex items-center justify-center gap-2 transition-all">
-                                                            <CheckCircle2 size={18} /> Mark as Done
-                                                        </button>
-                                                    ) : (
-                                                        <div className="flex justify-end gap-2">
-                                                            <button onClick={() => adjustGoal(goal, -1)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 border border-white/5"><Minus size={18} /></button>
-                                                            <button onClick={() => adjustGoal(goal, 1)} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white border border-white/10"><Plus size={18} /></button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </GlassCard>
-                                        );
-                                    })
-                                )}
-                             </div>
-                        </div>
-                    )}
+                    ))}
                 </div>
             );
         };
 
-        const AnalyticsOverlay = ({ user, onClose }) => {
+        // --- OVERLAYS (Full Views) ---
+
+        const AnalyticsView = ({ user, isDark, onClose }) => {
             const [logs, setLogs] = useState([]);
             const [habits, setHabits] = useState([]);
-            const [completedGoals, setCompletedGoals] = useState([]);
-            const [startDate, setStartDate] = useState(() => {
-                const d = new Date();
-                d.setDate(d.getDate() - 29);
-                return d.toISOString().split('T')[0];
-            });
-            const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
-
+            const [dateRange, setDateRange] = useState({ start: getLastMonthStr(), end: getTodayString() });
+            const styles = getStyles(isDark);
+            
             useEffect(() => {
-                const unsubHabits = onSnapshot(query(collection(db, "habits"), where("uid", "==", user.uid)), (snap) => setHabits(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-                const unsubLogs = onSnapshot(query(collection(db, "logs"), where("uid", "==", user.uid)), 
-                    (snap) => setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-                const unsubGoals = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid), where("status", "==", "COMPLETED")),
-                    (snap) => setCompletedGoals(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => b.completedAt - a.completedAt)));
-
-                return () => { unsubHabits(); unsubLogs(); unsubGoals(); };
+                const qLogs = query(collection(db, "logs"), where("uid", "==", user.uid));
+                const qHabits = query(collection(db, "habits"), where("uid", "==", user.uid));
+                const unsubLogs = onSnapshot(qLogs, (snap) => setLogs(snap.docs.map(d => ({...d.data(), id: d.id}))));
+                const unsubHabits = onSnapshot(qHabits, (snap) => setHabits(snap.docs.map(d => ({...d.data(), id: d.id}))));
+                return () => { unsubLogs(); unsubHabits(); };
             }, [user.uid]);
 
+            // Filter Logs based on Range
             const filteredLogs = useMemo(() => {
-                return logs.filter(log => log.dateString >= startDate && log.dateString <= endDate);
-            }, [logs, startDate, endDate]);
+                return logs.filter(l => l.dateString >= dateRange.start && l.dateString <= dateRange.end);
+            }, [logs, dateRange]);
 
-            // 1. Total Stats
-            const totalCompletions = filteredLogs.length;
+            // Stats
+            const totalFollows = filteredLogs.length;
+            const activeHabitCount = habits.length;
 
-            // 2. Weekly Pattern (Mon-Sun)
+            // Weekly Pattern (0-6 Sun-Sat) - Based on Filtered Logs
             const weeklyPattern = useMemo(() => {
-                const days = [0,0,0,0,0,0,0]; // Sun to Sat
-                filteredLogs.forEach(log => {
-                    const d = new Date(log.dateString).getDay();
-                    days[d]++;
+                const days = [0,0,0,0,0,0,0]; // Sun-Sat
+                filteredLogs.forEach(l => {
+                    // This creates a date object in local time context approximately
+                    const d = new Date(l.dateString).getDay(); 
+                    // Note: new Date("YYYY-MM-DD") is UTC, but getDay() uses local. 
+                    // Usually safer to append T12:00:00 to avoid timezone shifts.
+                    const dayIdx = new Date(l.dateString + 'T12:00:00').getDay();
+                    days[dayIdx]++;
                 });
-                // Rotate to make Monday first [1,2,3,4,5,6,0]
-                return [...days.slice(1), days[0]];
+                // Shift to Mon-Sun
+                return [...days.slice(1), days[0]]; 
             }, [filteredLogs]);
-            const maxWeekly = Math.max(...weeklyPattern, 1);
+            const maxVal = Math.max(...weeklyPattern, 1);
             const weekLabels = ['M','T','W','T','F','S','S'];
 
-            // 3. Habit Leaderboard
-            const habitLeaderboard = useMemo(() => {
+            // Top Habits
+            const topHabits = useMemo(() => {
                 const counts = {};
-                filteredLogs.forEach(l => counts[l.habitId] = (counts[l.habitId] || 0) + 1);
-                return habits.map(h => ({
-                    name: h.name,
-                    count: counts[h.id] || 0
-                })).sort((a, b) => b.count - a.count).slice(0, 5); // Top 5
+                filteredLogs.forEach(l => {
+                    counts[l.habitId] = (counts[l.habitId] || 0) + 1;
+                });
+                return habits
+                    .map(h => ({ name: h.name, count: counts[h.id] || 0 }))
+                    .sort((a,b) => b.count - a.count)
+                    .slice(0, 5);
             }, [filteredLogs, habits]);
+            const maxHabitCount = topHabits.length > 0 ? Math.max(...topHabits.map(h => h.count)) : 1;
 
-            // 4. Consistency Graph Data
-            const dateMap = useMemo(() => {
-                const map = new Map();
-                const start = new Date(startDate);
-                const end = new Date(endDate);
+            // Consistency Trend (Daily counts in range) - Simple Sparkline Logic
+            const trendData = useMemo(() => {
+                const dailyCounts = {};
+                filteredLogs.forEach(l => {
+                    dailyCounts[l.dateString] = (dailyCounts[l.dateString] || 0) + 1;
+                });
+                // Generate points for the selected range (sampled or full)
+                const points = [];
+                const start = new Date(dateRange.start);
+                const end = new Date(dateRange.end);
+                // Limit to roughly 30 points for smooth svg if range is huge
                 for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                    map.set(d.toISOString().split('T')[0], 0);
+                    const ds = d.toLocaleDateString('en-CA');
+                    points.push(dailyCounts[ds] || 0);
                 }
-                filteredLogs.forEach(log => {
-                    const val = map.get(log.dateString) || 0;
-                    map.set(log.dateString, val + 1);
-                });
-                return map;
-            }, [filteredLogs, startDate, endDate]);
-            const chartData = Array.from(dateMap.entries()).sort();
-            const maxCount = Math.max(...chartData.map(([, count]) => count), 1);
-            const getSvgPath = () => {
-                if (chartData.length < 2) return "";
+                return points;
+            }, [filteredLogs, dateRange]);
+
+            // SVG Path Generator for Trend
+            const trendPath = useMemo(() => {
+                if (trendData.length < 2) return "";
+                const max = Math.max(...trendData, 1);
                 const width = 100;
-                const height = 40;
-                const dx = width / (chartData.length - 1);
-                let path = `M 0,${height} `;
-                chartData.forEach(([, count], i) => {
-                    const x = i * dx;
-                    const y = height - (count / maxCount) * height * 0.8;
-                    path += `L ${x},${y} `;
+                const height = 100;
+                const stepX = width / (trendData.length - 1);
+                
+                let d = `M 0 ${height} `; // Start bottom left
+                trendData.forEach((val, i) => {
+                    const x = i * stepX;
+                    const y = height - (val / max) * height; // Invert Y
+                    d += `L ${x} ${y} `;
                 });
-                path += `L 100,${height} Z`;
-                return path;
-            };
+                d += `L ${width} ${height} Z`; // Close path
+                return d;
+            }, [trendData]);
+
+
+            // Heatmap Logic (Use full log history for context, or filter? User asked for range visuals)
+            // Let's stick to showing consistency within the selected range + padding if needed, 
+            // but heatmap looks best when showing "Recent". Let's use the Date Range for heatmap too.
+            const heatmapData = useMemo(() => {
+                const map = new Map();
+                filteredLogs.forEach(l => {
+                    map.set(l.dateString, (map.get(l.dateString) || 0) + 1);
+                });
+                // Generate grid based on range. Limit to last 35 days of range if too large? 
+                // Or just show last 28 days ending at End Date.
+                const days = [];
+                const end = new Date(dateRange.end);
+                for(let i=27; i>=0; i--) {
+                    const d = new Date(end);
+                    d.setDate(end.getDate() - i);
+                    const ds = d.toLocaleDateString('en-CA');
+                    days.push({ date: ds, count: map.get(ds) || 0 });
+                }
+                return days;
+            }, [filteredLogs, dateRange]);
 
             return (
-                <div className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto animate-slide-in-right">
+                <div className={`fixed inset-0 z-50 ${styles.modalBg} overflow-y-auto animate-slide-in-right transition-colors duration-500`}>
                     <div className="max-w-md mx-auto min-h-screen p-4 flex flex-col space-y-6">
-                        <div className="flex items-center gap-4">
-                            <button onClick={onClose} className="p-2 bg-white/10 rounded-full hover:bg-white/20"><ArrowLeft size={20} /></button>
-                            <h1 className="text-2xl font-light text-white flex items-center gap-2">Analytics <TrendingUp className="text-emerald-400" size={24} /></h1>
+                        <div className="flex items-center gap-4 pt-2">
+                            <button onClick={onClose} className={`p-2 rounded-full ${styles.iconBg} hover:opacity-80 transition-opacity`}><ArrowLeft size={20} className={styles.textMain} /></button>
+                            <h1 className={`text-2xl font-bold flex items-center gap-2 ${styles.textMain}`}>Analytics <TrendingUp size={24} className="text-emerald-500"/></h1>
                         </div>
 
-                        {/* Date Picker Range */}
-                        <GlassCard className="p-3">
-                             <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
-                                 <CalendarDays size={14} /> <span>Analysis Range</span>
-                             </div>
-                             <div className="flex gap-2">
-                                 <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={INPUT_CLASSES + " py-2 text-xs"} />
-                                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={INPUT_CLASSES + " py-2 text-xs"} />
-                             </div>
-                        </GlassCard>
-
-                        {/* Achievements Trophy Room */}
-                        <section>
-                            <div className="flex items-center gap-2 mb-3 px-2">
-                                <Medal size={16} className="text-amber-400" />
-                                <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Achievements</h2>
+                        {/* Date Range Picker */}
+                        <Card isDark={isDark} className="p-4">
+                            <h3 className={`text-xs font-bold uppercase tracking-wider mb-2 ${styles.textSub} flex items-center gap-2`}><CalendarRange size={14}/> Analysis Range</h3>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="date" 
+                                    value={dateRange.start} 
+                                    onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                                    className={`${styles.input} rounded-xl px-3 py-2 text-xs flex-1 outline-none`}
+                                />
+                                <input 
+                                    type="date" 
+                                    value={dateRange.end} 
+                                    onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                                    className={`${styles.input} rounded-xl px-3 py-2 text-xs flex-1 outline-none`}
+                                />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {completedGoals.length === 0 ? (
-                                    <div className="col-span-2 text-center text-slate-500 text-xs py-4 bg-white/5 rounded-xl border border-white/5 border-dashed">
-                                        No completed goals yet. Keep pushing!
-                                    </div>
-                                ) : (
-                                    completedGoals.map(goal => (
-                                        <GlassCard key={goal.id} className="p-3 border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent flex flex-col justify-between">
-                                            <div className="flex justify-between items-start mb-2">
-                                                 <Trophy size={16} className="text-amber-400" />
-                                                 <span className="text-[10px] text-amber-200/70">{formatPeriodDisplay(goal.type, goal.period)}</span>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-white font-medium text-sm leading-tight mb-1">{goal.name}</h4>
-                                                <div className="text-xs text-amber-100/60">Hit Target: <span className="text-amber-400 font-bold">{goal.target}</span></div>
-                                            </div>
-                                        </GlassCard>
-                                    ))
-                                )}
-                            </div>
-                        </section>
+                        </Card>
 
+                        {/* Top Stats */}
                         <div className="grid grid-cols-2 gap-4">
-                            <GlassCard className="p-4 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-bold text-emerald-400">{totalCompletions}</span>
-                                <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1 text-center">Total Follows</span>
-                            </GlassCard>
-                            <GlassCard className="p-4 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-bold text-blue-400">{habits.length}</span>
-                                <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Active Habits</span>
-                            </GlassCard>
+                            <Card isDark={isDark} className="p-6 flex flex-col items-center justify-center relative overflow-hidden">
+                                <span className="text-4xl font-bold text-emerald-500 z-10">{totalFollows}</span>
+                                <span className={`text-[10px] uppercase tracking-widest mt-1 ${styles.textSub} z-10`}>Total Follows</span>
+                                <div className="absolute inset-0 bg-emerald-500/5 blur-xl"></div>
+                            </Card>
+                            <Card isDark={isDark} className="p-6 flex flex-col items-center justify-center relative overflow-hidden">
+                                <span className="text-4xl font-bold text-blue-500 z-10">{activeHabitCount}</span>
+                                <span className={`text-[10px] uppercase tracking-widest mt-1 ${styles.textSub} z-10`}>Active Habits</span>
+                                <div className="absolute inset-0 bg-blue-500/5 blur-xl"></div>
+                            </Card>
                         </div>
 
                         {/* Weekly Pattern Chart */}
                         <section>
-                             <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Weekly Productivity Pattern</h2>
-                             <GlassCard className="p-5 flex items-end justify-between h-32">
-                                 {weeklyPattern.map((count, i) => {
-                                     const heightPercent = (count / maxWeekly) * 100;
-                                     return (
-                                         <div key={i} className="flex flex-col items-center gap-2 w-full">
-                                             <div className="w-2 bg-blue-500/50 rounded-t-sm transition-all duration-500" style={{ height: `${heightPercent || 5}%` }}></div>
-                                             <span className="text-[10px] text-slate-500">{weekLabels[i]}</span>
-                                         </div>
-                                     )
-                                 })}
-                             </GlassCard>
+                            <h2 className={`text-sm font-bold mb-3 px-2 uppercase tracking-wider ${styles.textSub}`}>Weekly Productivity Pattern</h2>
+                            <Card isDark={isDark} className="p-6 h-48 flex items-end justify-between relative overflow-hidden">
+                                <div className={`absolute inset-0 opacity-10 ${isDark ? 'bg-white/5' : 'bg-slate-100'}`}></div>
+                                {weeklyPattern.map((val, i) => (
+                                    <div key={i} className="flex flex-col items-center gap-2 w-full z-10">
+                                        <div className="w-2 relative h-32 flex items-end">
+                                            <div 
+                                                className={`w-full rounded-t-sm transition-all duration-700 ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} 
+                                                style={{ height: `${(val/maxVal)*100 || 5}%` }}
+                                            >
+                                                {val > 0 && <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] opacity-0 hover:opacity-100 transition-opacity bg-black text-white px-1 rounded">{val}</div>}
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-bold ${styles.textSub}`}>{weekLabels[i]}</span>
+                                    </div>
+                                ))}
+                            </Card>
                         </section>
 
-                        {/* Habit Leaderboard */}
-                        <section>
-                            <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Top Habits (Selected Range)</h2>
-                            <GlassCard className="p-4 space-y-3">
-                                {habitLeaderboard.map((h, i) => (
-                                    <div key={i} className="flex items-center gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-slate-400">#{i+1}</div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between text-xs mb-1">
-                                                <span className="text-slate-200">{h.name}</span>
-                                                <span className="text-emerald-400 font-bold">{h.count}</span>
+                         {/* Top Habits List */}
+                         <section>
+                            <h2 className={`text-sm font-bold mb-3 px-2 uppercase tracking-wider ${styles.textSub}`}>Top Habits (Selected Range)</h2>
+                            <Card isDark={isDark} className="p-5 space-y-4">
+                                {topHabits.length === 0 ? <div className={`text-center text-xs ${styles.textSub}`}>No data in this range.</div> : 
+                                topHabits.map((h, i) => (
+                                    <div key={i} className="relative">
+                                        <div className="flex justify-between items-center text-sm font-medium mb-1 z-10 relative">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isDark ? 'bg-white/10 text-slate-300' : 'bg-slate-200 text-slate-600'}`}>#{i+1}</div>
+                                                <span className={styles.textMain}>{h.name}</span>
                                             </div>
-                                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-emerald-500" style={{ width: `${(h.count / Math.max(habitLeaderboard[0].count, 1)) * 100}%` }}></div>
-                                            </div>
+                                            <span className="font-bold text-emerald-500">{h.count}</span>
+                                        </div>
+                                        <div className={`h-1.5 w-full rounded-full overflow-hidden ${isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+                                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(h.count / maxHabitCount) * 100}%` }}></div>
                                         </div>
                                     </div>
                                 ))}
-                                {habitLeaderboard.length === 0 && <div className="text-xs text-slate-500 text-center">No data available.</div>}
-                            </GlassCard>
+                            </Card>
                         </section>
 
-                        {/* Consistency Graph */}
+                        {/* Consistency Trend Chart */}
                         <section>
-                             <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Consistency Trend</h2>
-                             <GlassCard className="p-4 overflow-hidden relative h-32 flex items-end">
-                                 <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="w-full h-full absolute bottom-0 left-0">
-                                     <defs>
-                                         <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
-                                             <stop offset="0%" stopColor="#10b981" stopOpacity="0.5" />
-                                             <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                                         </linearGradient>
-                                     </defs>
-                                     <path d={getSvgPath()} fill="url(#gradient)" stroke="#34d399" strokeWidth="0.5" />
-                                 </svg>
-                             </GlassCard>
+                            <h2 className={`text-sm font-bold mb-3 px-2 uppercase tracking-wider ${styles.textSub}`}>Consistency Trend</h2>
+                            <Card isDark={isDark} className="p-0 h-40 relative overflow-hidden flex items-end">
+                                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+                                    <defs>
+                                        <linearGradient id="trendGradient" x1="0" x2="0" y1="0" y2="1">
+                                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.5" />
+                                            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d={trendPath} fill="url(#trendGradient)" stroke="#10b981" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                                </svg>
+                                {trendData.length === 0 && <div className={`absolute inset-0 flex items-center justify-center text-xs ${styles.textSub}`}>No data</div>}
+                            </Card>
                         </section>
 
-                        {/* Heatmap */}
+                        {/* Consistency Heatmap */}
                         <section>
-                            <h2 className="text-sm font-semibold text-slate-400 mb-3 px-2 uppercase tracking-wider">Heatmap</h2>
-                            <GlassCard className="p-4 overflow-x-auto">
-                                <div className="flex flex-wrap gap-1 content-start justify-center" style={{ minWidth: '100%' }}>
-                                    {chartData.map(([date, count]) => {
-                                        let bgClass = "bg-white/5";
-                                        if (count > 0) bgClass = "bg-emerald-900";
-                                        if (count > 1) bgClass = "bg-emerald-700";
-                                        if (count > 3) bgClass = "bg-emerald-500";
-                                        if (count > 5) bgClass = "bg-emerald-300";
-                                        return (
-                                            <div key={date} className={`w-3 h-3 rounded-sm ${bgClass}`} title={`${formatDateDisplay(date)}: ${count} habits`} />
-                                        );
-                                    })}
+                            <h2 className={`text-sm font-bold mb-3 px-2 uppercase tracking-wider ${styles.textSub}`}>Heatmap (End of Range)</h2>
+                            <Card isDark={isDark} className="p-5">
+                                <div className="grid grid-cols-7 gap-2">
+                                    {heatmapData.map((d, i) => (
+                                        <div key={i} className={`aspect-square rounded-sm transition-all duration-300 ${d.count > 0 ? styles.heatmapOn : styles.heatmapOff}`} title={`${d.date}: ${d.count}`}></div>
+                                    ))}
                                 </div>
-                            </GlassCard>
+                            </Card>
                         </section>
+                        
                         <div className="h-10"></div>
                     </div>
                 </div>
             );
         };
 
-        const GoalsView = ({ user }) => {
-            const [goals, setGoals] = useState([]);
-            const [viewMode, setViewMode] = useState('MONTHLY');
-            const currentMonthStr = getCurrentMonthStr();
-            const currentYearStr = getCurrentYearStr();
-
-            useEffect(() => {
-                const unsub = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid)), (snap) => setGoals(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
-                return () => unsub();
-            }, [user.uid]);
-
-            // Filter by type, remove COMPLETED, sort by period
-            const filteredGoals = goals
-                .filter(g => g.type === viewMode && g.status !== 'COMPLETED')
-                .sort((a, b) => {
-                    if (!a.period || !b.period) return 0;
-                    return a.period.localeCompare(b.period);
-                });
-
-            const adjustGoal = async (goal, amount) => {
-                const newCurrent = (goal.current || 0) + amount;
-                
-                if (goal.target && newCurrent >= goal.target && amount > 0) {
-                     if (confirm(`🎉 Amazing! You've reached your target for "${goal.name}". Mark as Completed?`)) {
-                        await updateDoc(doc(db, "goals", goal.id), { 
-                            current: newCurrent,
-                            status: 'COMPLETED',
-                            completedAt: Date.now()
-                        });
-                     } else {
-                         await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
-                     }
-                } else {
-                     await updateDoc(doc(db, "goals", goal.id), { current: newCurrent });
-                }
-            };
-
-            const getGoalStatus = (goalPeriod) => {
-                if (viewMode === 'MONTHLY') {
-                    if (goalPeriod === currentMonthStr) return 'CURRENT';
-                    if (goalPeriod > currentMonthStr) return 'UPCOMING';
-                    return 'PAST';
-                } else {
-                    if (goalPeriod === currentYearStr) return 'CURRENT';
-                    if (goalPeriod > currentYearStr) return 'UPCOMING';
-                    return 'PAST';
-                }
-            };
-
-            return (
-                <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
-                    <div className="px-2">
-                        <h1 className="text-3xl font-light text-white tracking-tight">Goals Timeline</h1>
-                        <p className="text-sm text-slate-400 mt-1">
-                            Tracking your {viewMode.toLowerCase()} roadmap
-                        </p>
-                    </div>
-
-                    <div className="bg-black/20 p-1 rounded-xl flex border border-white/5">
-                        <button onClick={() => setViewMode('MONTHLY')} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'MONTHLY' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-500'}`}>Monthly</button>
-                        <button onClick={() => setViewMode('YEARLY')} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'YEARLY' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-500'}`}>Yearly</button>
-                    </div>
-
-                    <div className="space-y-4">
-                        {filteredGoals.length === 0 ? (
-                            <div className="text-center p-8 text-slate-500 bg-white/5 rounded-2xl border border-white/5 border-dashed">
-                                No active {viewMode.toLowerCase()} goals found.
-                            </div>
-                        ) : (
-                            filteredGoals.map(goal => {
-                                const hasTarget = goal.target && goal.target > 0;
-                                const progress = hasTarget ? Math.min(100, Math.max(0, (goal.current / goal.target) * 100)) : 0;
-                                const status = getGoalStatus(goal.period);
-                                
-                                let statusColor = "text-slate-500";
-                                let badgeBg = "bg-slate-500/10 text-slate-400";
-                                if (status === 'CURRENT') {
-                                    statusColor = "text-white";
-                                    badgeBg = "bg-blue-500/20 text-blue-300 border border-blue-500/30";
-                                } else if (status === 'UPCOMING') {
-                                    statusColor = "text-slate-300";
-                                    badgeBg = "bg-emerald-500/10 text-emerald-300";
-                                }
-
-                                return (
-                                    <GlassCard key={goal.id} className={`p-5 flex flex-col space-y-4 relative overflow-hidden transition-all duration-300 ${status === 'CURRENT' ? 'border-blue-500/30 bg-white/10' : 'opacity-90'}`}>
-                                        <div className="flex justify-between items-start relative z-10">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${badgeBg}`}>
-                                                        {status}
-                                                    </span>
-                                                    <div className="flex items-center gap-1 text-slate-400 text-xs">
-                                                        <Clock size={12} />
-                                                        <span>{formatPeriodDisplay(viewMode, goal.period)}</span>
-                                                    </div>
-                                                </div>
-                                                <h3 className={`text-xl font-bold ${statusColor}`}>{goal.name}</h3>
-                                                <p className="text-sm text-slate-400 mt-1">
-                                                    Current: <span className="text-white font-mono font-bold text-lg">{goal.current}</span>
-                                                    {hasTarget && <span> / {goal.target}</span>}
-                                                </p>
-                                            </div>
-                                            {hasTarget && <span className="text-2xl font-bold text-white/90">{Math.round(progress)}%</span>}
-                                        </div>
-                                        {hasTarget && (
-                                            <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 relative z-10">
-                                                <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500" style={{ width: `${progress}%` }} />
-                                            </div>
-                                        )}
-                                        <div className="flex space-x-3 pt-2 relative z-10">
-                                            <button onClick={() => adjustGoal(goal, -1)} className="flex-1 bg-white/5 hover:bg-white/10 p-2 rounded-xl flex items-center justify-center border border-white/10"><Minus size={20} className="text-slate-300" /></button>
-                                            <button onClick={() => adjustGoal(goal, 1)} className="flex-1 bg-white/10 hover:bg-white/20 p-2 rounded-xl flex items-center justify-center border border-white/10"><Plus size={20} className="text-white" /></button>
-                                        </div>
-                                    </GlassCard>
-                                );
-                            })
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        const NotesOverlay = ({ user, onClose }) => {
-            const [activeTab, setActiveTab] = useState('IDEAS'); // IDEAS | EXECUTED
+        const NotesView = ({ user, isDark, onClose }) => {
+            const [activeTab, setActiveTab] = useState('PENDING'); // PENDING | EXECUTED
             const [notes, setNotes] = useState([]);
             const [text, setText] = useState("");
+            const styles = getStyles(isDark);
 
             useEffect(() => {
                 const q = query(collection(db, "notes"), where("uid", "==", user.uid));
@@ -890,61 +521,62 @@
                 setText("");
             };
 
-            const executeNote = async (id) => {
-                await updateDoc(doc(db, "notes", id), { status: 'EXECUTED', executedAt: Date.now() });
+            const toggleStatus = async (note) => {
+                const newStatus = note.status === 'PENDING' ? 'EXECUTED' : 'PENDING';
+                await updateDoc(doc(db, "notes", note.id), { status: newStatus });
             };
 
-            const filteredNotes = notes.filter(n => activeTab === 'IDEAS' ? n.status === 'PENDING' : n.status === 'EXECUTED');
+            const deleteNote = async (id) => {
+                if(confirm("Delete this note?")) await deleteDoc(doc(db, "notes", id));
+            };
+
+            const filteredNotes = notes.filter(n => n.status === activeTab);
 
             return (
-                <div className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto animate-slide-in-right">
+                <div className={`fixed inset-0 z-50 ${styles.modalBg} overflow-y-auto animate-slide-in-right transition-colors duration-500`}>
                     <div className="max-w-md mx-auto min-h-screen p-4 flex flex-col">
-                        <div className="flex items-center gap-4 mb-6">
-                            <button onClick={onClose} className="p-2 bg-white/10 rounded-full hover:bg-white/20"><ArrowLeft size={20} /></button>
-                            <h1 className="text-2xl font-light text-white">Someday Notes</h1>
+                        <div className="flex items-center gap-4 mb-6 pt-2">
+                            <button onClick={onClose} className={`p-2 rounded-full ${styles.iconBg} hover:opacity-80 transition-opacity`}><ArrowLeft size={20} className={styles.textMain} /></button>
+                            <h1 className={`text-2xl font-bold ${styles.textMain}`}>Notes Manager</h1>
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex bg-black/20 p-1 rounded-xl mb-6">
-                            <button onClick={() => setActiveTab('IDEAS')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'IDEAS' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>Ideas</button>
-                            <button onClick={() => setActiveTab('EXECUTED')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'EXECUTED' ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-500'}`}>Executed</button>
+                        <div className={`flex p-1 rounded-2xl mb-6 border ${isDark ? 'bg-black/30 border-white/5' : 'bg-slate-100 border-slate-200'}`}>
+                            <button onClick={() => setActiveTab('PENDING')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'PENDING' ? (isDark ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-slate-900 shadow') : styles.textSub}`}>Ideas</button>
+                            <button onClick={() => setActiveTab('EXECUTED')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'EXECUTED' ? (isDark ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-slate-900 shadow') : styles.textSub}`}>Executed</button>
                         </div>
 
-                        {activeTab === 'IDEAS' && (
+                        {activeTab === 'PENDING' && (
                             <form onSubmit={addNote} className="mb-6 relative">
-                                <textarea 
+                                <input 
                                     value={text} 
                                     onChange={e => setText(e.target.value)} 
-                                    placeholder="Type your idea here..." 
-                                    className={`${INPUT_CLASSES} min-h-[100px] resize-none`}
+                                    placeholder="Capture a new idea..." 
+                                    className={`${styles.input} w-full rounded-2xl py-4 pl-4 pr-14 text-sm outline-none shadow-sm`}
                                 />
-                                <button type="submit" className="absolute bottom-3 right-3 p-2 bg-blue-500 rounded-full hover:bg-blue-600 transition-colors shadow-lg">
+                                <button type="submit" className="absolute right-2 top-2 p-2 bg-amber-500 rounded-xl hover:bg-amber-600 text-black shadow-lg shadow-amber-500/20 transition-transform active:scale-95">
                                     <Plus size={20} />
                                 </button>
                             </form>
                         )}
 
-                        <div className="space-y-3 pb-10">
+                        <div className="space-y-3 pb-24">
                             {filteredNotes.length === 0 ? (
-                                <div className="text-center text-slate-500 mt-10">No notes found.</div>
+                                <div className={`text-center py-10 ${styles.textSub}`}>No {activeTab.toLowerCase()} notes found.</div>
                             ) : (
                                 filteredNotes.map(note => (
-                                    <GlassCard key={note.id} className="p-4 flex gap-3 items-start">
-                                        <div className="mt-1">
-                                            {note.status === 'EXECUTED' ? <CheckSquare size={20} className="text-emerald-400" /> : <Lightbulb size={20} className="text-amber-400" />}
-                                        </div>
+                                    <Card key={note.id} isDark={isDark} className="p-4 flex gap-3 items-start group">
+                                        <button onClick={() => toggleStatus(note)} className={`mt-1 p-1 rounded-md transition-colors ${note.status === 'EXECUTED' ? 'text-emerald-500' : 'text-slate-400 hover:text-amber-500'}`}>
+                                            {note.status === 'EXECUTED' ? <CheckSquare size={20} /> : <StickyNote size={20} />}
+                                        </button>
                                         <div className="flex-1">
-                                            <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{note.text}</p>
-                                            <p className="text-[10px] text-slate-500 mt-2">
-                                                {formatDateDisplay(new Date(note.createdAt))}
-                                            </p>
+                                            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${styles.textMain}`}>{note.text}</p>
+                                            <p className={`text-[10px] mt-2 ${styles.textSub}`}>{formatDateDisplay(new Date(note.createdAt))}</p>
                                         </div>
-                                        {note.status === 'PENDING' && (
-                                            <button onClick={() => executeNote(note.id)} className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-bold border border-emerald-500/20 transition-all flex flex-col items-center gap-1">
-                                                <Rocket size={16} /> Execute
-                                            </button>
-                                        )}
-                                    </GlassCard>
+                                        <button onClick={() => deleteNote(note.id)} className={`p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500'}`}>
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </Card>
                                 ))
                             )}
                         </div>
@@ -953,20 +585,233 @@
             );
         };
 
-        const SettingsView = ({ user }) => {
-            const [showNotes, setShowNotes] = useState(false);
-            const [showAnalytics, setShowAnalytics] = useState(false);
+        // --- VIEWS ---
+
+        const TodayView = ({ user, onNavigate, isDark, onOpenNotes }) => {
+            const [habits, setHabits] = useState([]);
+            const [logs, setLogs] = useState([]);
+            const [activeGoals, setActiveGoals] = useState([]);
             
+            const styles = getStyles(isDark);
+            
+            // FIX: Ensure todayStr is stable but updates on mount.
+            const todayStr = useMemo(() => getTodayString(), []); 
+
+            useEffect(() => {
+                const qHabits = query(collection(db, "habits"), where("uid", "==", user.uid));
+                const unsubHabits = onSnapshot(qHabits, (snap) => setHabits(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.name.localeCompare(b.name))));
+                
+                // Query using the LOCAL today string
+                const qLogs = query(collection(db, "logs"), where("uid", "==", user.uid), where("dateString", "==", todayStr));
+                const unsubLogs = onSnapshot(qLogs, (snap) => setLogs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+                
+                const qGoals = query(collection(db, "goals"), where("uid", "==", user.uid));
+                const unsubGoals = onSnapshot(qGoals, (snap) => setActiveGoals(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(g => g.status !== 'COMPLETED')));
+                return () => { unsubHabits(); unsubLogs(); unsubGoals(); };
+            }, [user.uid, todayStr]);
+
+            const toggleHabit = async (habit) => {
+                const existingLog = logs.find(log => log.habitId === habit.id);
+                if (existingLog) await deleteDoc(doc(db, "logs", existingLog.id));
+                else await addDoc(collection(db, "logs"), { uid: user.uid, habitId: habit.id, dateString: todayStr });
+            };
+            
+            const adjustGoal = async (goal, amount) => {
+                const newCurrent = (goal.current || 0) + amount;
+                if (goal.target && newCurrent >= goal.target && amount > 0) {
+                    if (confirm(`🎉 Amazing! You've reached your target for "${goal.name}". Mark as Completed?`)) {
+                        await updateDoc(doc(db, "goals", goal.id), { current: newCurrent, status: 'COMPLETED', completedAt: Date.now() });
+                    } else { await updateDoc(doc(db, "goals", goal.id), { current: newCurrent }); }
+                } else { await updateDoc(doc(db, "goals", goal.id), { current: newCurrent }); }
+            };
+            
+            const markAsDone = async (goal) => {
+                if (confirm(`Mark "${goal.name}" as completed?`)) await updateDoc(doc(db, "goals", goal.id), { status: 'COMPLETED', completedAt: Date.now() });
+            };
+
+            const completedCount = logs.length;
+
+            return (
+                <div className="flex flex-col space-y-6 pb-24 animate-fade-in relative">
+                    <div className="flex justify-between items-start pt-2 px-2">
+                        <div>
+                            <h1 className={`text-4xl font-bold tracking-tight leading-none transition-colors duration-300 ${styles.textMain}`}>Happy<br/>{getDayName()} <span className="text-3xl">👋</span></h1>
+                            <p className={`mt-2 font-medium ${styles.textSub}`}>{formatDateDisplay(new Date())}, {new Date().getFullYear()}</p>
+                        </div>
+                        <div onClick={() => onNavigate(Tab.SETTINGS)} className={`p-1.5 rounded-full border cursor-pointer transition-colors duration-300 ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                            <img src={`https://ui-avatars.com/api/?name=${user.displayName}&background=random&color=fff`} className="w-10 h-10 rounded-full" alt="Profile"/>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => onNavigate(Tab.SETTINGS)} className={`${styles.btnPrimary} font-bold py-4 rounded-3xl flex items-center justify-center gap-2 transition-all`}>
+                            <Plus size={20} strokeWidth={3} /> New Habit
+                        </button>
+                        <button onClick={onOpenNotes} className={`${styles.btnSecondary} font-semibold py-4 rounded-3xl flex items-center justify-center gap-2 transition-all`}>
+                            <Lightbulb size={20} className="text-amber-400" /> Ideas
+                        </button>
+                    </div>
+
+                    <CalendarStrip isDark={isDark} />
+
+                    <Card isDark={isDark} className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 min-h-[160px] flex flex-col justify-between">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className={`${isDark ? 'bg-white/10 text-blue-300' : 'bg-white text-blue-600'} p-1.5 rounded-lg shadow-sm`}><Activity size={16} /></span>
+                            <span className={`text-xs font-bold uppercase tracking-wider ${styles.textSub}`}>Truth for Today ⭐</span>
+                        </div>
+                        <Typewriter isDark={isDark} />
+                    </Card>
+
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-end px-2">
+                            <h2 className={`text-xl font-bold ${styles.textMain}`}>Today's Habits</h2>
+                            <span className={`text-xs font-medium px-2 py-1 rounded-lg ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-200 text-slate-600'}`}>{completedCount}/{habits.length} Done</span>
+                        </div>
+                        <div className="space-y-3">
+                            {habits.length === 0 ? (
+                                <div className={`text-center p-8 rounded-3xl border border-dashed ${isDark ? 'bg-white/5 border-white/5 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>No habits scheduled for today.</div>
+                            ) : (
+                                habits.map(habit => {
+                                    const isCompleted = logs.some(log => log.habitId === habit.id);
+                                    const cardBase = isDark ? (isCompleted ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/5 hover:bg-white/10') : (isCompleted ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100 hover:bg-slate-50 shadow-sm');
+                                    const iconBox = isDark ? (isCompleted ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-300') : (isCompleted ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400');
+                                    const titleColor = isCompleted ? (isDark ? 'text-emerald-300 line-through decoration-emerald-500/50' : 'text-emerald-700 line-through decoration-emerald-500') : styles.textMain;
+
+                                    return (
+                                        <div key={habit.id} onClick={() => toggleHabit(habit)} className={`group relative p-4 rounded-3xl border transition-all duration-300 cursor-pointer flex items-center gap-4 ${cardBase}`}>
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner transition-colors ${iconBox}`}>{isCompleted ? <Check size={24} strokeWidth={3} /> : <Zap size={24} />}</div>
+                                            <div className="flex-1">
+                                                <h3 className={`text-base font-semibold transition-colors ${titleColor}`}>{habit.name}</h3>
+                                                <p className={`text-xs mt-0.5 flex items-center gap-1 ${styles.textSub}`}><Clock size={10} /> Anytime</p>
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500 scale-110' : `${isDark ? 'border-white/20' : 'border-slate-300'} group-hover:border-slate-400`}`}>{isCompleted && <Check size={14} className="text-white" strokeWidth={4} />}</div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+
+                    {activeGoals.length > 0 && (
+                        <div className="space-y-4 pt-2">
+                            <h2 className={`px-2 text-xl font-bold ${styles.textMain}`}>Should Do!</h2>
+                            <div className="grid gap-3">
+                                {activeGoals.map(goal => {
+                                    const hasTarget = goal.target && goal.target > 0;
+                                    const progress = hasTarget ? Math.min(100, (goal.current / goal.target) * 100) : 0;
+                                    
+                                    return (
+                                        <Card key={goal.id} isDark={isDark} className="p-5 flex flex-col justify-between min-h-[120px] relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">{hasTarget ? <Target size={80} /> : <CheckCircle2 size={80} />}</div>
+                                            <div className="flex justify-between items-start z-10">
+                                                <div>
+                                                    <h3 className={`text-lg font-bold leading-tight ${styles.textMain}`}>{goal.name}</h3>
+                                                    <p className={`text-xs mt-1 ${styles.textSub}`}>{hasTarget ? `${goal.current} / ${goal.target}` : 'Ongoing Goal'}</p>
+                                                </div>
+                                                <div className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${goal.type === 'MONTHLY' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>{goal.type === 'MONTHLY' ? 'Monthly' : 'Yearly'}</div>
+                                            </div>
+                                            {hasTarget && (<div className={`mt-4 mb-2 h-1.5 w-full rounded-full overflow-hidden ${isDark ? 'bg-black/40' : 'bg-slate-200'}`}><div className="h-full bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: `${progress}%` }} /></div>)}
+                                            <div className="flex justify-end pt-2 z-10">
+                                                {!hasTarget ? (
+                                                    <button onClick={() => markAsDone(goal)} className="px-4 py-2 bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-2 hover:scale-105 transition-transform shadow-md shadow-emerald-500/20"><Check size={14} strokeWidth={3} /> Mark Done</button>
+                                                ) : (
+                                                    <div className={`flex items-center gap-1 p-1 rounded-xl border ${isDark ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                                                        <button onClick={() => adjustGoal(goal, -1)} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 shadow-sm'}`}><Minus size={16} /></button>
+                                                        <span className={`w-8 text-center text-sm font-bold ${styles.textMain}`}>{goal.current}</span>
+                                                        <button onClick={() => adjustGoal(goal, 1)} className="w-8 h-8 flex items-center justify-center bg-amber-500 rounded-lg text-black hover:bg-amber-400 shadow-sm"><Plus size={16} /></button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const GoalsView = ({ user, isDark }) => {
+            const [goals, setGoals] = useState([]);
+            const [viewMode, setViewMode] = useState('MONTHLY');
+            const styles = getStyles(isDark);
+            
+            useEffect(() => {
+                const unsub = onSnapshot(query(collection(db, "goals"), where("uid", "==", user.uid)), (snap) => setGoals(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+                return () => unsub();
+            }, [user.uid]);
+
+            const filteredGoals = goals.filter(g => g.type === viewMode && g.status !== 'COMPLETED').sort((a, b) => (a.period || '').localeCompare(b.period || ''));
+
+            const adjustGoal = async (goal, amount) => {
+                const newCurrent = (goal.current || 0) + amount;
+                if (goal.target && newCurrent >= goal.target && amount > 0) {
+                     if (confirm(`Completed "${goal.name}"?`)) {
+                        await updateDoc(doc(db, "goals", goal.id), { current: newCurrent, status: 'COMPLETED', completedAt: Date.now() });
+                     } else { await updateDoc(doc(db, "goals", goal.id), { current: newCurrent }); }
+                } else { await updateDoc(doc(db, "goals", goal.id), { current: newCurrent }); }
+            };
+
+            return (
+                <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
+                    <div className="px-2 pt-2">
+                        <h1 className={`text-3xl font-bold tracking-tight ${styles.textMain}`}>Goals Timeline</h1>
+                        <p className={`text-sm mt-1 ${styles.textSub}`}>Tracking your {viewMode.toLowerCase()} roadmap</p>
+                    </div>
+
+                    <div className={`p-1.5 rounded-2xl flex border ${isDark ? 'bg-black/30 border-white/5' : 'bg-slate-100 border-slate-200'}`}>
+                        {['MONTHLY', 'YEARLY'].map(mode => (
+                            <button key={mode} onClick={() => setViewMode(mode)} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all shadow-sm ${viewMode === mode ? (isDark ? 'bg-white/10 text-white' : 'bg-white text-slate-900 shadow') : styles.textSub}`}>
+                                {mode === 'MONTHLY' ? 'Monthly' : 'Yearly'}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        {filteredGoals.length === 0 ? (
+                            <div className={`text-center p-8 rounded-3xl border border-dashed ${isDark ? 'bg-white/5 border-white/5 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>No active {viewMode.toLowerCase()} goals.</div>
+                        ) : (
+                            filteredGoals.map(goal => {
+                                const hasTarget = goal.target && goal.target > 0;
+                                const progress = hasTarget ? Math.min(100, Math.max(0, (goal.current / goal.target) * 100)) : 0;
+                                return (
+                                    <Card key={goal.id} isDark={isDark} className="p-5 flex flex-col space-y-4 relative overflow-hidden">
+                                        <div className="flex justify-between items-start z-10">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wider ${isDark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>{formatPeriodDisplay(viewMode, goal.period)}</span>
+                                                </div>
+                                                <h3 className={`text-xl font-bold ${styles.textMain}`}>{goal.name}</h3>
+                                            </div>
+                                            {hasTarget && <span className={`text-2xl font-bold ${isDark ? 'text-white/80' : 'text-slate-300'}`}>{Math.round(progress)}%</span>}
+                                        </div>
+                                        {hasTarget && (<div className={`h-3 w-full rounded-full overflow-hidden ${isDark ? 'bg-black/40' : 'bg-slate-200'}`}><div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500" style={{ width: `${progress}%` }} /></div>)}
+                                        <div className="flex items-center justify-between pt-2">
+                                            <span className={`text-sm font-mono font-bold ${styles.textMain}`}>{goal.current} <span className={styles.textSub}>/ {goal.target || '∞'}</span></span>
+                                            <div className="flex space-x-2">
+                                                <button onClick={() => adjustGoal(goal, -1)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}><Minus size={20} /></button>
+                                                <button onClick={() => adjustGoal(goal, 1)} className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/30"><Plus size={20} /></button>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const SettingsView = ({ user, isDark, toggleTheme, onOpenAnalytics, onOpenNotes }) => {
             const [habitName, setHabitName] = useState("");
-            
-            // Goal State
             const [goalName, setGoalName] = useState("");
             const [goalTarget, setGoalTarget] = useState(""); 
             const [goalType, setGoalType] = useState('MONTHLY');
-            const [selectedPeriod, setSelectedPeriod] = useState(getCurrentMonthStr()); // Default 2023-10
-            
+            const [selectedPeriod, setSelectedPeriod] = useState(getCurrentMonthStr());
             const [habits, setHabits] = useState([]);
             const [goals, setGoals] = useState([]);
+            const styles = getStyles(isDark);
 
             useEffect(() => {
                 const unsubHabits = onSnapshot(query(collection(db, "habits"), where("uid", "==", user.uid)), (snap) => setHabits(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
@@ -984,113 +829,93 @@
             const handleCreateGoal = async (e) => {
                 e.preventDefault();
                 if (!goalName.trim()) return;
-                
-                const targetVal = goalTarget ? Number(goalTarget) : 0; 
-                const data = { 
-                    uid: user.uid, 
-                    name: goalName, 
-                    target: targetVal, 
-                    current: 0, 
-                    createdAt: Date.now(), 
-                    type: goalType,
-                    period: selectedPeriod // Use specific selected period
-                };
-                
-                await addDoc(collection(db, "goals"), data);
+                await addDoc(collection(db, "goals"), { uid: user.uid, name: goalName, target: Number(goalTarget) || 0, current: 0, createdAt: Date.now(), type: goalType, period: selectedPeriod });
                 setGoalName(""); setGoalTarget("");
-                alert(`${goalType === 'MONTHLY' ? 'Monthly' : 'Yearly'} goal added for ${selectedPeriod}!`);
             };
 
-            const handleDelete = async (collectionName, id) => {
-                if (confirm("Are you sure?")) await deleteDoc(doc(db, collectionName, id));
-            };
-
-            if (showNotes) return <NotesOverlay user={user} onClose={() => setShowNotes(false)} />;
-            if (showAnalytics) return <AnalyticsOverlay user={user} onClose={() => setShowAnalytics(false)} />;
+            const handleDelete = async (col, id) => { if (confirm("Delete this item?")) await deleteDoc(doc(db, col, id)); };
 
             return (
-                <div className="flex flex-col space-y-8 pb-24 animate-fade-in">
-                    <div className="flex justify-between items-center px-2">
-                        <h1 className="text-3xl font-light text-white tracking-tight">Settings</h1>
-                        <button onClick={logout} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-full border border-red-500/20 transition-colors">
-                            <LogOut size={20} />
-                        </button>
+                <div className="flex flex-col space-y-6 pb-24 animate-fade-in">
+                    <div className="flex justify-between items-center px-2 pt-2">
+                        <h1 className={`text-3xl font-bold tracking-tight ${styles.textMain}`}>Settings</h1>
+                        <button onClick={() => signOut(auth)} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-full border border-red-500/20 transition-colors"><LogOut size={20} /></button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Someday Notes Entry */}
-                        <GlassCard className="p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/10 transition-colors group text-center h-32" onClick={() => setShowNotes(true)}>
-                            <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                                <Lightbulb size={20} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                    <Card isDark={isDark} className="p-6">
+                        <div className="flex items-center gap-4 mb-6">
+                            <img src={`https://ui-avatars.com/api/?name=${user.displayName}&background=random&color=fff`} className="w-16 h-16 rounded-full shadow-lg" alt="Profile"/>
+                            <div>
+                                <h3 className={`text-lg font-bold ${styles.textMain}`}>{user.displayName}</h3>
+                                <p className={`text-xs ${styles.textSub}`}>{user.email}</p>
                             </div>
-                            <h3 className="text-white font-medium text-sm">Someday Notes</h3>
-                        </GlassCard>
+                        </div>
+                        <div className={`h-px w-full ${styles.divider} mb-6`}></div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-xl ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-600'}`}>{isDark ? <Moon size={20} /> : <Sun size={20} />}</div>
+                                <div><h4 className={`font-semibold ${styles.textMain}`}>Appearance</h4><p className={`text-xs ${styles.textSub}`}>{isDark ? 'Dark Mode' : 'Light Mode'}</p></div>
+                            </div>
+                            <button onClick={toggleTheme} className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 flex items-center ${isDark ? 'bg-indigo-600 justify-end' : 'bg-slate-300 justify-start'}`}><div className="w-6 h-6 bg-white rounded-full shadow-md transform transition-transform" /></button>
+                        </div>
+                    </Card>
 
-                        {/* Analytics Entry */}
-                        <GlassCard className="p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/10 transition-colors group text-center h-32" onClick={() => setShowAnalytics(true)}>
-                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                                <BarChart3 size={20} className="text-blue-400 group-hover:scale-110 transition-transform" />
-                            </div>
-                            <h3 className="text-white font-medium text-sm">Analytics</h3>
-                        </GlassCard>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Card isDark={isDark} onClick={onOpenNotes} className="p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity h-32 text-center group">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-amber-500/10 text-amber-500' : 'bg-amber-100 text-amber-600'}`}><Lightbulb size={20} /></div>
+                            <h3 className={`font-bold text-sm ${styles.textMain}`}>Notes Manager</h3>
+                        </Card>
+                        <Card isDark={isDark} onClick={onOpenAnalytics} className="p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity h-32 text-center group">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-emerald-500/10 text-emerald-500' : 'bg-emerald-100 text-emerald-600'}`}><BarChart3 size={20} /></div>
+                            <h3 className={`font-bold text-sm ${styles.textMain}`}>View Analytics</h3>
+                        </Card>
                     </div>
 
                     <section>
-                        <h2 className="text-lg font-semibold text-slate-300 mb-3 px-2">Manage Habits</h2>
-                        <GlassCard className="p-5">
-                            <form onSubmit={handleCreateHabit} className="space-y-4">
-                                <input type="text" value={habitName} onChange={(e) => setHabitName(e.target.value)} placeholder="e.g., Morning Jog" className={INPUT_CLASSES} />
-                                <button type="submit" className={BUTTON_CLASSES}><div className="flex items-center justify-center gap-2"><PlusCircle size={20} /> Add Habit</div></button>
+                        <h2 className={`text-lg font-bold mb-3 px-2 ${styles.textMain}`}>Daily Habits</h2>
+                        <Card isDark={isDark} className="p-5">
+                            <form onSubmit={handleCreateHabit} className="flex gap-2 mb-4">
+                                <input type="text" value={habitName} onChange={(e) => setHabitName(e.target.value)} placeholder="New habit name..." className={`${styles.input} rounded-xl px-4 py-3 flex-1 text-sm outline-none transition-colors duration-300`} />
+                                <button type="submit" className="bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-xl shadow-lg shadow-emerald-500/20"><Plus size={20} /></button>
                             </form>
-                        </GlassCard>
-                        <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
-                            {habits.map(h => (
-                                <div key={h.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-                                    <span className="text-slate-300">{h.name}</span>
-                                    <button onClick={() => handleDelete("habits", h.id)} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={18} /></button>
-                                </div>
-                            ))}
-                        </div>
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                {habits.map(h => (
+                                    <div key={h.id} className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                                        <span className={`text-sm font-medium ${styles.textMain}`}>{h.name}</span>
+                                        <button onClick={() => handleDelete("habits", h.id)} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
                     </section>
 
                     <section>
-                        <h2 className="text-lg font-semibold text-slate-300 mb-3 px-2">Add Goal</h2>
-                        <GlassCard className="p-5">
-                            <form onSubmit={handleCreateGoal} className="space-y-4">
-                                <div className="flex bg-black/30 p-1 rounded-lg">
-                                    <button type="button" onClick={() => { setGoalType('MONTHLY'); setSelectedPeriod(getCurrentMonthStr()); }} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'MONTHLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Monthly</button>
-                                    <button type="button" onClick={() => { setGoalType('YEARLY'); setSelectedPeriod(getCurrentYearStr()); }} className={`flex-1 py-2 text-xs rounded-md transition-colors ${goalType === 'YEARLY' ? 'bg-white/20 text-white' : 'text-slate-400'}`}>Yearly</button>
+                        <h2 className={`text-lg font-bold mb-3 px-2 ${styles.textMain}`}>Long-term Goals</h2>
+                        <Card isDark={isDark} className="p-5">
+                            <form onSubmit={handleCreateGoal} className="space-y-3 mb-4">
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => setGoalType('MONTHLY')} className={`flex-1 py-2 text-xs font-bold rounded-lg border ${goalType === 'MONTHLY' ? 'bg-blue-500 text-white border-blue-500' : `${styles.textSub} border-transparent`}`}>Monthly</button>
+                                    <button type="button" onClick={() => setGoalType('YEARLY')} className={`flex-1 py-2 text-xs font-bold rounded-lg border ${goalType === 'YEARLY' ? 'bg-purple-500 text-white border-purple-500' : `${styles.textSub} border-transparent`}`}>Yearly</button>
                                 </div>
-                                
-                                <input type="text" value={goalName} onChange={(e) => setGoalName(e.target.value)} placeholder={goalType === 'MONTHLY' ? "e.g., Read 2 Books" : "e.g., Save $5000"} className={INPUT_CLASSES} />
-                                <input type="number" value={goalTarget} onChange={(e) => setGoalTarget(e.target.value)} placeholder="Target (Optional)" className={INPUT_CLASSES} />
-                                
-                                <div className="space-y-1">
-                                    <label className="text-xs text-slate-400 ml-1">Deadline / Period</label>
-                                    {goalType === 'MONTHLY' ? (
-                                        <input type="month" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className={INPUT_CLASSES} />
-                                    ) : (
-                                        <input type="number" min="2024" max="2050" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className={INPUT_CLASSES} />
-                                    )}
+                                <input type="text" value={goalName} onChange={(e) => setGoalName(e.target.value)} placeholder="Goal name..." className={`${styles.input} rounded-xl px-4 py-3 w-full text-sm outline-none transition-colors duration-300`} />
+                                <div className="flex gap-2">
+                                    <input type="number" value={goalTarget} onChange={(e) => setGoalTarget(e.target.value)} placeholder="Target (Opt)" className={`${styles.input} rounded-xl px-4 py-3 flex-1 text-sm outline-none transition-colors duration-300`} />
+                                    {goalType === 'MONTHLY' ? (<input type="month" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className={`${styles.input} rounded-xl px-2 py-3 w-32 text-xs outline-none`} />) : (<input type="number" min="2024" max="2030" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className={`${styles.input} rounded-xl px-2 py-3 w-32 text-xs outline-none`} />)}
                                 </div>
-
-                                <button type="submit" className={BUTTON_CLASSES}><div className="flex items-center justify-center gap-2"><PlusCircle size={20} /> Add {goalType === 'MONTHLY' ? 'Monthly' : 'Yearly'} Goal</div></button>
+                                <button type="submit" className={`${styles.btnPrimary} w-full py-3 rounded-xl font-bold text-sm`}>Add Goal</button>
                             </form>
-                        </GlassCard>
-                         <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
-                            {goals.map(g => (
-                                <div key={g.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-slate-300">{g.name}</span>
-                                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${g.type === 'MONTHLY' ? 'bg-blue-500/20 text-blue-300' : 'bg-purple-500/20 text-purple-300'}`}>{g.type === 'MONTHLY' ? 'Mo.' : 'Yr.'}</span>
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                {goals.map(g => (
+                                    <div key={g.id} className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                                        <div className="flex flex-col">
+                                            <span className={`text-sm font-medium ${styles.textMain}`}>{g.name}</span>
+                                            <span className="text-[10px] text-slate-400">{g.type} • {g.period}</span>
                                         </div>
-                                        <span className="text-[10px] text-slate-500">{g.period} • Target: {g.target || '∞'}</span>
+                                        <button onClick={() => handleDelete("goals", g.id)} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                                     </div>
-                                    <button onClick={() => handleDelete("goals", g.id)} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={18} /></button>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        </Card>
                     </section>
                 </div>
             );
@@ -1102,49 +927,47 @@
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
             const [activeTab, setActiveTab] = useState(Tab.TODAY);
+            const [isDark, setIsDark] = useState(true);
+            const [showAnalytics, setShowAnalytics] = useState(false);
+            const [showNotes, setShowNotes] = useState(false);
 
             useEffect(() => {
-                const unsubscribe = subscribeToAuth((currentUser) => {
-                    setUser(currentUser);
+                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                    if (currentUser && ALLOWED_EMAIL && currentUser.email !== ALLOWED_EMAIL) { alert("Restricted Access"); signOut(auth); } else { setUser(currentUser); }
                     setLoading(false);
                 });
                 return () => unsubscribe();
             }, []);
 
-            if (loading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-slate-700 border-t-white rounded-full"></div></div>;
+            const toggleTheme = () => setIsDark(prev => !prev);
+            const styles = getStyles(isDark);
+
+            useEffect(() => { document.body.className = `transition-colors duration-500 ${styles.bg}`; }, [isDark]);
+
+            if (loading) return <div className={`min-h-screen ${styles.bg} flex items-center justify-center`}><div className="animate-spin h-8 w-8 border-4 border-slate-700 border-t-amber-500 rounded-full"></div></div>;
 
             if (!user) {
                 return (
-                    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center p-6">
-                        <GlassCard className="w-full max-w-sm p-8 flex flex-col items-center text-center space-y-8 animate-fade-in-up">
-                            <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center border border-white/20 shadow-xl shadow-blue-900/20">
-                                <Lock size={40} className="text-blue-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-light text-white mb-2">Life Tracker</h1>
-                                <p className="text-slate-400">Secure Personal Workspace</p>
-                            </div>
-                            <button onClick={signInWithGoogle} className={BUTTON_CLASSES}>
-                                <span className="flex items-center justify-center gap-2">Sign in with Google</span>
-                            </button>
-                            {ALLOWED_EMAIL ? (
-                                <p className="text-xs text-slate-500 flex items-center gap-1"><ShieldAlert size={12} /> Restricted to Owner</p>
-                            ) : (
-                                <p className="text-xs text-slate-500">Your data is private and encrypted.</p>
-                            )}
-                        </GlassCard>
+                    <div className={`min-h-screen ${styles.bg} flex items-center justify-center p-6 transition-colors duration-500`}>
+                        <Card isDark={isDark} className="w-full max-w-sm p-8 flex flex-col items-center text-center space-y-8 animate-fade-in-up">
+                            <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20 shadow-xl shadow-blue-500/10"><Lock size={40} className="text-blue-500" /></div>
+                            <div><h1 className={`text-4xl font-light mb-2 ${styles.textMain}`}>Life Tracker</h1><p className={styles.textSub}>Personal Workspace</p></div>
+                            <button onClick={signInWithGoogle} className={`${styles.btnPrimary} w-full py-3 rounded-xl font-bold transition-transform active:scale-95`}>Sign in with Google</button>
+                        </Card>
                     </div>
                 );
             }
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-slate-100 font-sans selection:bg-blue-500/30">
+                <div className={`min-h-screen ${styles.bg} ${styles.textMain} font-sans selection:bg-amber-500/30 transition-colors duration-500`}>
                     <main className="max-w-md mx-auto min-h-screen p-4">
-                        {activeTab === Tab.TODAY && <TodayView user={user} />}
-                        {activeTab === Tab.GOALS && <GoalsView user={user} />}
-                        {activeTab === Tab.SETTINGS && <SettingsView user={user} />}
+                        {activeTab === Tab.TODAY && <TodayView user={user} onNavigate={setActiveTab} isDark={isDark} onOpenNotes={() => setShowNotes(true)} />}
+                        {activeTab === Tab.GOALS && <GoalsView user={user} isDark={isDark} />}
+                        {activeTab === Tab.SETTINGS && <SettingsView user={user} isDark={isDark} toggleTheme={toggleTheme} onOpenAnalytics={() => setShowAnalytics(true)} onOpenNotes={() => setShowNotes(true)} />}
                     </main>
-                    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+                    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} isDark={isDark} />
+                    {showAnalytics && <AnalyticsView user={user} isDark={isDark} onClose={() => setShowAnalytics(false)} />}
+                    {showNotes && <NotesView user={user} isDark={isDark} onClose={() => setShowNotes(false)} />}
                 </div>
             );
         };
